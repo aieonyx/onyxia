@@ -5,7 +5,7 @@
   "build": {
     "frontendDist": "../src",
     "devUrl": "http://localhost:1420",
-    "beforeDevCommand": "",
+    "beforeDevCommand": "npx vite --config vite.config.ts",
     "beforeBuildCommand": ""
   },
   "app": {

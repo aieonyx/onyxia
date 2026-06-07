@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Edison Lepiten / AIEONYX
 // SPDX-License-Identifier: Apache-2.0
 //
-// C1 IPC surface — navigation only.
+// C1/C4 IPC surface — navigation only.
 // INVARIANT: no vault, no AWIT, no credential data crosses this IPC boundary.
 
 use crate::browser::tab_manager::{Tab, TabManager};
@@ -10,8 +10,6 @@ use tauri::{State, WebviewWindow};
 
 type TabState = Arc<Mutex<TabManager>>;
 
-/// Navigate the active tab to a URL.
-/// URL validation: scheme must be http or https. awp:// handled in C4.
 #[tauri::command]
 pub async fn navigate(
     url: String,
@@ -19,14 +17,21 @@ pub async fn navigate(
     window: WebviewWindow,
 ) -> Result<(), String> {
     let url = url.trim().to_string();
-    let url = if !url.starts_with("http://") && !url.starts_with("https://") {
+
+    let url = if !url.starts_with("http://")
+        && !url.starts_with("https://")
+        && !url.starts_with("awp://")
+    {
         format!("https://{}", url)
     } else {
         url
     };
 
-    if !url.starts_with("http://") && !url.starts_with("https://") {
-        return Err("Unsupported scheme. Only http:// and https:// in C1.".to_string());
+    if !url.starts_with("http://")
+        && !url.starts_with("https://")
+        && !url.starts_with("awp://")
+    {
+        return Err("Unsupported scheme. Allowed: http://, https://, awp://".to_string());
     }
 
     let active_id = {
@@ -37,7 +42,7 @@ pub async fn navigate(
     window
         .eval(&format!(
             "window.location.href = '{}'",
-            url.replace('\'', "\\'")
+            url.replace("'", "\\'")
         ))
         .map_err(|e: tauri::Error| e.to_string())?;
 

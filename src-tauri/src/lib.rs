@@ -4,6 +4,7 @@
 mod browser;
 mod commands;
 
+use browser::awp_handler::handle_awp_request;
 use browser::header_injection::{axon_client_value, AXON_CLIENT_HEADER, should_inject_header};
 use browser::tab_manager::TabManager;
 use std::sync::{Arc, Mutex};
@@ -19,6 +20,9 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(tab_manager)
+        .register_uri_scheme_protocol("awp", |_app, request| {
+            handle_awp_request(request)
+        })
         .invoke_handler(tauri::generate_handler![
             commands::navigation::navigate,
             commands::navigation::go_back,
