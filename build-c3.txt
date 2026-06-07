@@ -1,0 +1,5 @@
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/edisonbl/onyxia/src-tauri/Cargo.toml
+workspace: /home/edisonbl/onyxia/Cargo.toml
+   Compiling onyxia v0.1.0 (/home/edisonbl/onyxia/src-tauri)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.46s

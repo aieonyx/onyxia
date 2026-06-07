@@ -5,8 +5,8 @@
   "build": {
     "frontendDist": "../src",
     "devUrl": "http://localhost:1420",
-    "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build"
+    "beforeDevCommand": "",
+    "beforeBuildCommand": ""
   },
   "app": {
     "windows": [
@@ -26,17 +26,26 @@
       "freezePrototype": true,
       "assetProtocol": {
         "enable": true,
-        "scope": ["$APPDATA/onyxia/**", "$HOME/.config/onyxia/**"]
+        "scope": [
+          "$APPDATA/onyxia/**",
+          "$HOME/.config/onyxia/**"
+        ]
       }
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": ["icons/icon.png"],
+    "icon": [
+      "icons/icon.png"
+    ],
     "linux": {
       "deb": {
-        "depends": ["libwebkit2gtk-4.1-0", "libsecret-1-0", "libgtk-3-0"]
+        "depends": [
+          "libwebkit2gtk-4.1-0",
+          "libsecret-1-0",
+          "libgtk-3-0"
+        ]
       }
     }
   }

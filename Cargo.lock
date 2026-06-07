@@ -2184,6 +2184,7 @@ dependencies = [
  "tauri-build",
  "tokio",
  "url",
+ "webkit2gtk",
 ]
 
 [[package]]

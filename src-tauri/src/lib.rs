@@ -4,13 +4,18 @@
 mod browser;
 mod commands;
 
+use browser::header_injection::{axon_client_value, AXON_CLIENT_HEADER, should_inject_header};
 use browser::tab_manager::TabManager;
 use std::sync::{Arc, Mutex};
+use tauri::Manager;
 
 pub fn run() {
     env_logger::init();
 
     let tab_manager = Arc::new(Mutex::new(TabManager::new()));
+    let header_value = axon_client_value();
+
+    log::info!("AXON-Client header: {}", header_value);
 
     tauri::Builder::default()
         .manage(tab_manager)
@@ -22,6 +27,38 @@ pub fn run() {
             commands::navigation::close_tab,
             commands::navigation::switch_tab,
         ])
+        .setup(move |app| {
+            let header_val = header_value.clone();
+            let webview = app.get_webview_window("main")
+                .expect("main webview window not found");
+
+            #[cfg(target_os = "linux")]
+            {
+                use webkit2gtk::{URIRequestExt, WebResourceExt, WebViewExt};
+                webview.with_webview(move |wv| {
+                    let inner = wv.inner();
+                    let hv = header_val.clone();
+                    inner.connect_resource_load_started(
+                        move |_view,
+                              resource: &webkit2gtk::WebResource,
+                              request: &webkit2gtk::URIRequest| {
+                            if let Some(url) = resource.uri() {
+                                if should_inject_header(url.as_str()) {
+                                    if let Some(headers) = request.http_headers() {
+                                        headers.append(
+                                            AXON_CLIENT_HEADER,
+                                            hv.as_str(),
+                                        );
+                                    }
+                                }
+                            }
+                        },
+                    );
+                })?;
+            }
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("Onyxia failed to start");
 }

@@ -1,3 +1,36 @@
+
+// Copyright (c) 2026 Edison Lepiten / AIEONYX
+// C3: AXON-Client header injection via fetch interceptor.
+// INVARIANT: header grants no elevated server permissions (SI-5).
+// Covers all fetch/XHR requests. Top-level navigation headers: C4.
+
+const AXON_CLIENT_HEADER = 'AXON-Client';
+const AXON_CLIENT_VALUE = 'onyxia/0.1.0 (sovereign; linux)';
+
+const originalFetch = window.fetch;
+window.fetch = function(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    init = init || {};
+    init.headers = new Headers(init.headers || {});
+    (init.headers as Headers).set(AXON_CLIENT_HEADER, AXON_CLIENT_VALUE);
+  }
+  return originalFetch.call(this, input, init);
+};
+
+// XHR intercept
+const OriginalXHR = window.XMLHttpRequest;
+class SovereignXHR extends OriginalXHR {
+  open(method: string, url: string | URL, ...args: any[]): void {
+    super.open(method, url, ...args);
+    const urlStr = url.toString();
+    if (urlStr.startsWith('http://') || urlStr.startsWith('https://')) {
+      this.setRequestHeader(AXON_CLIENT_HEADER, AXON_CLIENT_VALUE);
+    }
+  }
+}
+window.XMLHttpRequest = SovereignXHR as any;
+
 // Copyright (c) 2026 Edison Lepiten / AIEONYX
 // C1 browser chrome — navigation and tab management only.
 // INVARIANT: this script never touches vault data, AWIT tokens, or credentials.
