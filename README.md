@@ -1,3 +1,7 @@
+
+<p align="center">
+  <img src="assets/onyxia_banner.png" alt="Onyxia Banner">
+</p>
 # Onyxia
 
 **The Sovereign Browser.**
