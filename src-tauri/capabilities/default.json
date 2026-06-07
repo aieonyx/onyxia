@@ -1,0 +1,10 @@
+{
+  "identifier": "default",
+  "description": "C1 capability set — navigation only. Vault, AWIT, AWP: not present.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-set-title"
+  ]
+}

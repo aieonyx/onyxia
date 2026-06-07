@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';" />
+  <title>Onyxia</title>
+  <link rel="stylesheet" href="styles/chrome.css" />
+</head>
+<body>
+  <div id="browser-chrome">
+
+    <!-- Tab Strip -->
+    <div id="tab-strip">
+      <div id="tabs-container"></div>
+      <button id="new-tab-btn" title="New Tab">+</button>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div id="nav-bar">
+      <button id="btn-back" title="Back">&#8592;</button>
+      <button id="btn-forward" title="Forward">&#8594;</button>
+      <button id="btn-reload" title="Reload">&#8635;</button>
+
+      <!-- URL Bar — trust indicator slot is ALWAYS here, even if empty in C1 -->
+      <div id="url-bar-wrap">
+        <span id="trust-indicator" aria-label="Trust indicator"></span>
+        <input id="url-input" type="text" spellcheck="false"
+               placeholder="Enter address" autocomplete="off" />
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="scripts/main.ts"></script>
+</body>
+</html>

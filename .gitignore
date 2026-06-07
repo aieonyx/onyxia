@@ -1,0 +1,17 @@
+# Rust
+/target
+**/*.rs.bk
+# Cargo.lock is committed — binary application
+
+# Node
+node_modules
+/dist
+/.vite
+
+# Tauri
+src-tauri/target
+src-tauri/gen
+
+# OS
+.DS_Store
+Thumbs.db

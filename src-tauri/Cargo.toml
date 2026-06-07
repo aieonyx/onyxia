@@ -1,0 +1,36 @@
+[package]
+name = "onyxia"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "onyxia_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[[bin]]
+name = "onyxia"
+path = "src/main.rs"
+
+[dependencies]
+tauri = { version = "2.0", features = ["protocol-asset"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+log = "0.4"
+env_logger = "0.11"
+url = "2.5"
+
+[build-dependencies]
+tauri-build = { version = "2.0", features = [] }
+
+[features]
+# C7 will add: embedded-db
+# C9 will add: awit-manager
+# C11 will add: usb-vault-key
+default = []
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
