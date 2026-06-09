@@ -4,9 +4,11 @@
 mod browser;
 mod commands;
 
+use browser::arpi_state::PageState;
 use browser::awp_handler::handle_awp_request;
 use browser::header_injection::{axon_client_value, AXON_CLIENT_HEADER, should_inject_header};
 use browser::tab_manager::TabManager;
+use commands::page_state::CurrentPageState;
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
 
@@ -14,12 +16,14 @@ pub fn run() {
     env_logger::init();
 
     let tab_manager = Arc::new(Mutex::new(TabManager::new()));
+    let page_state: CurrentPageState = Arc::new(Mutex::new(PageState::blank()));
     let header_value = axon_client_value();
 
     log::info!("AXON-Client header: {}", header_value);
 
     tauri::Builder::default()
         .manage(tab_manager)
+        .manage(page_state)
         .register_uri_scheme_protocol("awp", |_app, request| {
             handle_awp_request(request)
         })
@@ -30,6 +34,8 @@ pub fn run() {
             commands::navigation::new_tab,
             commands::navigation::close_tab,
             commands::navigation::switch_tab,
+            commands::page_state::get_page_state,
+            commands::page_state::update_page_url,
         ])
         .setup(move |app| {
             let header_val = header_value.clone();
@@ -49,10 +55,7 @@ pub fn run() {
                             if let Some(url) = resource.uri() {
                                 if should_inject_header(url.as_str()) {
                                     if let Some(headers) = request.http_headers() {
-                                        headers.append(
-                                            AXON_CLIENT_HEADER,
-                                            hv.as_str(),
-                                        );
+                                        headers.append(AXON_CLIENT_HEADER, hv.as_str());
                                     }
                                 }
                             }

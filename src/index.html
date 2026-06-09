@@ -10,29 +10,52 @@
 </head>
 <body>
   <div id="browser-chrome">
-
-    <!-- Tab Strip -->
     <div id="tab-strip">
       <div id="tabs-container"></div>
       <button id="new-tab-btn" title="New Tab">+</button>
     </div>
-
-    <!-- Navigation Bar -->
     <div id="nav-bar">
       <button id="btn-back" title="Back">&#8592;</button>
       <button id="btn-forward" title="Forward">&#8594;</button>
       <button id="btn-reload" title="Reload">&#8635;</button>
-
-      <!-- URL Bar — trust indicator slot is ALWAYS here, even if empty in C1 -->
       <div id="url-bar-wrap">
-        <span id="trust-indicator" aria-label="Trust indicator"></span>
+        <div id="protocol-switcher">
+          <button id="protocol-btn" title="Switch protocol">
+            <span id="protocol-icon"></span>
+            <span id="protocol-chevron">&#9662;</span>
+          </button>
+          <div id="protocol-dropdown" class="hidden">
+            <button class="protocol-option" data-protocol="https">
+              <span class="proto-icon">&#128274;</span>
+              <span class="proto-label">HTTPS</span>
+              <span class="proto-check" id="https-check"></span>
+            </button>
+            <button class="protocol-option" data-protocol="awp">
+              <span class="proto-icon">&#10022;</span>
+              <span class="proto-label">AWP</span>
+              <span class="proto-check" id="awp-check"></span>
+            </button>
+          </div>
+        </div>
         <input id="url-input" type="text" spellcheck="false"
                placeholder="Enter address" autocomplete="off" />
       </div>
     </div>
-
+    <div id="arpi-bar" class="hidden">
+      <div id="arpi-legacy">
+        <span class="arpi-legacy-icon">&#128274;</span>
+        <span class="arpi-legacy-text">Legacy connection — ARPi not active</span>
+      </div>
+      <div id="arpi-sovereign" class="hidden">
+        <span class="arpi-label">ARPi</span>
+        <span class="arpi-layer" id="layer-schema">L1 Schema</span>
+        <span class="arpi-layer" id="layer-identity">L2 Identity</span>
+        <span class="arpi-layer" id="layer-auth">L3 Auth</span>
+        <span class="arpi-layer" id="layer-scope">L4 Scope</span>
+        <span class="arpi-layer" id="layer-anomaly">L5 Anomaly</span>
+      </div>
+    </div>
   </div>
-
   <script type="module" src="scripts/main.ts"></script>
 </body>
 </html>

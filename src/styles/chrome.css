@@ -220,3 +220,141 @@ html, body {
 #url-input::selection {
   background: rgba(0, 229, 255, 0.2);
 }
+
+/* ── Protocol Switcher ── */
+#protocol-switcher {
+  position: relative;
+  flex-shrink: 0;
+}
+
+#protocol-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+
+#protocol-btn:hover {
+  background: var(--btn-hover);
+  color: var(--text-primary);
+}
+
+#protocol-icon { font-size: 14px; }
+#protocol-chevron { font-size: 9px; opacity: 0.6; }
+
+#protocol-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: #12121a;
+  border: 1px solid var(--tab-border);
+  border-radius: 8px;
+  padding: 4px;
+  min-width: 160px;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+#protocol-dropdown.hidden { display: none; }
+
+.protocol-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 5px;
+  font-size: 13px;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.protocol-option:hover { background: var(--btn-hover); }
+.proto-icon { font-size: 14px; width: 18px; text-align: center; }
+.proto-label { flex: 1; }
+.proto-check { color: var(--accent-cyan); font-size: 12px; }
+
+/* ── ARPi Status Bar ── */
+#arpi-bar {
+  display: flex;
+  align-items: center;
+  background: #0d0d16;
+  border-bottom: 1px solid var(--tab-border);
+  height: 28px;
+  padding: 0 12px;
+  font-size: 11px;
+  gap: 8px;
+}
+
+#arpi-bar.hidden { display: none; }
+
+#arpi-legacy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+}
+
+#arpi-legacy.hidden,
+#arpi-sovereign.hidden { display: none; }
+
+.arpi-legacy-icon { font-size: 11px; }
+.arpi-legacy-text { font-size: 11px; color: var(--text-secondary); }
+
+#arpi-sovereign {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arpi-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  letter-spacing: 0.08em;
+  margin-right: 4px;
+}
+
+.arpi-layer {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--tab-border);
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.arpi-layer.verified {
+  border-color: #00C853;
+  color: #00C853;
+  background: rgba(0,200,83,0.08);
+}
+
+.arpi-layer.verified::after { content: " ✓"; }
+
+.arpi-layer.pending {
+  border-color: #FFB300;
+  color: #FFB300;
+  background: rgba(255,179,0,0.08);
+}
+
+.arpi-layer.pending::after { content: " …"; }
+
+.arpi-layer.failed {
+  border-color: #FF3D00;
+  color: #FF3D00;
+  background: rgba(255,61,0,0.08);
+}
+
+.arpi-layer.failed::after { content: " ✗"; }
