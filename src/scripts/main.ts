@@ -90,7 +90,7 @@ async function updatePageState(url: string): Promise<void> {
 }
 
 function renderPageState(state: PageState): void {
-  if (state.protocol === "awp") {
+  if (state.protocol === "awp" && !state.host.includes("asset")) {
     protocolIcon.textContent = "✶";
     awpCheck.textContent = "✓";
     httpsCheck.textContent = "";
@@ -111,7 +111,7 @@ function renderPageState(state: PageState): void {
 
   arpiBar.classList.remove("hidden");
 
-  if (state.protocol === "awp") {
+  if (state.protocol === "awp" && !state.host.includes("asset")) {
     arpiLegacy.classList.add("hidden");
     arpiSovereign.classList.remove("hidden");
     Object.entries(layerEls).forEach(([key, el]) => {

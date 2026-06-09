@@ -1,10 +1,16 @@
 {
   "identifier": "default",
-  "description": "C1 capability set — navigation only. Vault, AWIT, AWP: not present.",
-  "windows": ["main"],
+  "description": "C1 capability set \u2014 navigation only. Vault, AWIT, AWP: not present.",
+  "windows": [
+    "onyxia-main"
+  ],
+  "webviews": [
+    "chrome"
+  ],
   "permissions": [
     "core:default",
     "core:window:allow-start-dragging",
-    "core:window:allow-set-title"
+    "core:window:allow-set-title",
+    "core:webview:allow-create-webview"
   ]
 }

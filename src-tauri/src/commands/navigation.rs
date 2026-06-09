@@ -1,12 +1,9 @@
 // Copyright (c) 2026 Edison Lepiten / AIEONYX
 // SPDX-License-Identifier: Apache-2.0
-//
-// C1/C4 IPC surface — navigation only.
-// INVARIANT: no vault, no AWIT, no credential data crosses this IPC boundary.
 
 use crate::browser::tab_manager::{Tab, TabManager};
 use std::sync::{Arc, Mutex};
-use tauri::{State, WebviewWindow};
+use tauri::{AppHandle, Manager, State};
 
 type TabState = Arc<Mutex<TabManager>>;
 
@@ -14,10 +11,9 @@ type TabState = Arc<Mutex<TabManager>>;
 pub async fn navigate(
     url: String,
     tab_state: State<'_, TabState>,
-    window: WebviewWindow,
+    app: AppHandle,
 ) -> Result<(), String> {
     let url = url.trim().to_string();
-
     let url = if !url.starts_with("http://")
         && !url.starts_with("https://")
         && !url.starts_with("awp://")
@@ -31,7 +27,7 @@ pub async fn navigate(
         && !url.starts_with("https://")
         && !url.starts_with("awp://")
     {
-        return Err("Unsupported scheme. Allowed: http://, https://, awp://".to_string());
+        return Err("Unsupported scheme.".to_string());
     }
 
     let active_id = {
@@ -39,29 +35,33 @@ pub async fn navigate(
         mgr.active_id()
     };
 
-    window
-        .eval(&format!(
-            "window.location.href = '{}'",
-            url.replace("'", "\\'")
-        ))
-        .map_err(|e: tauri::Error| e.to_string())?;
+    if let Some(content) = app.get_webview_window("content") {
+        content.navigate(
+            url.parse().map_err(|e: url::ParseError| e.to_string())?
+        ).map_err(|e: tauri::Error| e.to_string())?;
+    }
 
     {
         let mut mgr = tab_state.lock().map_err(|e: std::sync::PoisonError<_>| e.to_string())?;
         mgr.update_tab_url(active_id, url.clone(), url.clone());
     }
-
     Ok(())
 }
 
 #[tauri::command]
-pub async fn go_back(window: WebviewWindow) -> Result<(), String> {
-    window.eval("window.history.back()").map_err(|e: tauri::Error| e.to_string())
+pub async fn go_back(app: AppHandle) -> Result<(), String> {
+    if let Some(content) = app.get_webview_window("content") {
+        content.eval("window.history.back()").map_err(|e: tauri::Error| e.to_string())?;
+    }
+    Ok(())
 }
 
 #[tauri::command]
-pub async fn go_forward(window: WebviewWindow) -> Result<(), String> {
-    window.eval("window.history.forward()").map_err(|e: tauri::Error| e.to_string())
+pub async fn go_forward(app: AppHandle) -> Result<(), String> {
+    if let Some(content) = app.get_webview_window("content") {
+        content.eval("window.history.forward()").map_err(|e: tauri::Error| e.to_string())?;
+    }
+    Ok(())
 }
 
 #[tauri::command]

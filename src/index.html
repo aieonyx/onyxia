@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' http://localhost:1420; script-src 'self' http://localhost:1420 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:1420;" />
+        content="default-src 'self' asset: https://asset.localhost http://localhost:1420; script-src 'self' http://localhost:1420 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost ws://localhost:1420; frame-src *;" />
   <title>Onyxia</title>
   <link rel="stylesheet" href="styles/chrome.css" />
 </head>
@@ -56,6 +56,10 @@
       </div>
     </div>
   </div>
+
+  <!-- Content iframe — navigates freely, chrome stays fixed -->
+  <iframe id="content-frame" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"></iframe>
+
   <script type="module" src="scripts/main.ts"></script>
 </body>
 </html>
