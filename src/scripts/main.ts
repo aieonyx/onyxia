@@ -225,3 +225,11 @@ newTabBtn.addEventListener("click", newTab);
 // Initial render
 renderTabs();
 updatePageState("about:blank");
+
+// Window controls
+import { getCurrentWindow } from "@tauri-apps/api/window";
+const appWindow = getCurrentWindow();
+document.getElementById("btn-minimize")?.addEventListener("click", () => appWindow.minimize());
+document.getElementById("btn-maximize")?.addEventListener("click", () => appWindow.toggleMaximize());
+document.getElementById("btn-close")?.addEventListener("click", () => appWindow.close());
+

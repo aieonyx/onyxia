@@ -4,15 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' asset: https://asset.localhost http://localhost:1420; script-src 'self' http://localhost:1420 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost ws://localhost:1420; frame-src *;" />
+        content="default-src 'self' asset: https://asset.localhost http://localhost:1420; script-src 'self' http://localhost:1420 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost ws://localhost:1420;" />
   <title>Onyxia</title>
   <link rel="stylesheet" href="styles/chrome.css" />
 </head>
 <body>
   <div id="browser-chrome">
-    <div id="tab-strip">
+    <div id="tab-strip" data-tauri-drag-region>
       <div id="tabs-container"></div>
       <button id="new-tab-btn" title="New Tab">+</button>
+      <div id="window-controls">
+        <button id="btn-minimize" title="Minimize">&#8211;</button>
+        <button id="btn-maximize" title="Maximize">&#9633;</button>
+        <button id="btn-close" title="Close">&#10005;</button>
+      </div>
     </div>
     <div id="nav-bar">
       <button id="btn-back" title="Back">&#8592;</button>
@@ -41,7 +46,7 @@
                placeholder="Enter address" autocomplete="off" />
       </div>
     </div>
-    <div id="arpi-bar" class="hidden">
+    <div id="arpi-bar">
       <div id="arpi-legacy">
         <span class="arpi-legacy-icon">&#128274;</span>
         <span class="arpi-legacy-text">Legacy connection — ARPi not active</span>
@@ -56,10 +61,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Content iframe — navigates freely, chrome stays fixed -->
-  <iframe id="content-frame" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"></iframe>
-
   <script type="module" src="scripts/main.ts"></script>
 </body>
 </html>

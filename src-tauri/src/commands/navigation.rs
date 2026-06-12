@@ -30,17 +30,19 @@ pub async fn navigate(
         return Err("Unsupported scheme.".to_string());
     }
 
+    // Child webview (not WebviewWindow) — use get_webview()
+    if let Some(content) = app.get_webview("content") {
+        content
+            .navigate(url.parse().map_err(|e: url::ParseError| e.to_string())?)
+            .map_err(|e: tauri::Error| e.to_string())?;
+    } else {
+        return Err("Content webview not found".to_string());
+    }
+
     let active_id = {
         let mgr = tab_state.lock().map_err(|e: std::sync::PoisonError<_>| e.to_string())?;
         mgr.active_id()
     };
-
-    if let Some(content) = app.get_webview_window("content") {
-        content.navigate(
-            url.parse().map_err(|e: url::ParseError| e.to_string())?
-        ).map_err(|e: tauri::Error| e.to_string())?;
-    }
-
     {
         let mut mgr = tab_state.lock().map_err(|e: std::sync::PoisonError<_>| e.to_string())?;
         mgr.update_tab_url(active_id, url.clone(), url.clone());
@@ -50,7 +52,7 @@ pub async fn navigate(
 
 #[tauri::command]
 pub async fn go_back(app: AppHandle) -> Result<(), String> {
-    if let Some(content) = app.get_webview_window("content") {
+    if let Some(content) = app.get_webview("content") {
         content.eval("window.history.back()").map_err(|e: tauri::Error| e.to_string())?;
     }
     Ok(())
@@ -58,7 +60,7 @@ pub async fn go_back(app: AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn go_forward(app: AppHandle) -> Result<(), String> {
-    if let Some(content) = app.get_webview_window("content") {
+    if let Some(content) = app.get_webview("content") {
         content.eval("window.history.forward()").map_err(|e: tauri::Error| e.to_string())?;
     }
     Ok(())

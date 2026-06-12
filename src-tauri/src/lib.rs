@@ -10,11 +10,13 @@ use browser::header_injection::{axon_client_value, AXON_CLIENT_HEADER, should_in
 use browser::tab_manager::TabManager;
 use commands::page_state::CurrentPageState;
 use std::sync::{Arc, Mutex};
-use tauri::{Manager, WebviewWindowBuilder, WebviewUrl};
+use tauri::{LogicalPosition, LogicalSize, Manager};
+use tauri::webview::WebviewBuilder;
+use tauri::window::WindowBuilder;
 
 const CHROME_H: f64 = 108.0;
-const WIN_W: f64 = 1280.0;
-const WIN_H: f64 = 800.0;
+const WIN_W:    f64 = 1280.0;
+const WIN_H:    f64 = 800.0;
 
 pub fn run() {
     env_logger::init();
@@ -44,35 +46,50 @@ pub fn run() {
         .setup(move |app| {
             let header_val = header_value.clone();
 
-            // Chrome window — fixed height, never navigates, has IPC
-            let chrome = WebviewWindowBuilder::new(
-                app,
-                "chrome",
-                WebviewUrl::App("index.html".into()),
-            )
-            .title("Onyxia")
-            .inner_size(WIN_W, CHROME_H)
-            .min_inner_size(800.0, CHROME_H)
-            .resizable(false)
-            .decorations(true)
-            .position(0.0, 0.0)
-            .build()?;
+            let window = WindowBuilder::new(app, "main")
+                .inner_size(WIN_W, WIN_H)
+                .min_inner_size(800.0, 400.0)
+                .decorations(false)
+                .build()?;
 
-            // Content window — below chrome, navigates freely
-            let content = WebviewWindowBuilder::new(
-                app,
-                "content",
-                WebviewUrl::External("about:blank".parse().unwrap()),
-            )
-            .title("")
-            .inner_size(WIN_W, WIN_H - CHROME_H)
-            .min_inner_size(800.0, 400.0)
-            .resizable(true)
-            .decorations(false)
-            .position(0.0, CHROME_H)
-            .build()?;
+            let chrome = window.add_child(
+                WebviewBuilder::new(
+                    "chrome",
+                    tauri::WebviewUrl::App("index.html".into()),
+                ),
+                LogicalPosition::new(0.0, 0.0),
+                LogicalSize::new(WIN_W, CHROME_H),
+            )?;
 
-            // Header injection on content window
+            let content = window.add_child(
+                WebviewBuilder::new(
+                    "content",
+                    tauri::WebviewUrl::External("about:blank".parse().unwrap()),
+                ),
+                LogicalPosition::new(0.0, CHROME_H),
+                LogicalSize::new(WIN_W, WIN_H - CHROME_H),
+            )?;
+
+            // GtkBox surgery: repack children with correct expand flags
+            #[cfg(target_os = "linux")]
+            {
+                use gtk::prelude::{BoxExt, ContainerExt, WidgetExt};
+                if let Ok(vbox) = window.default_vbox() {
+                    let children = vbox.children();
+                    if children.len() >= 2 {
+                        let chrome_widget = children[0].clone();
+                        let content_widget = children[1].clone();
+                        vbox.remove(&chrome_widget);
+                        vbox.remove(&content_widget);
+                        chrome_widget.set_size_request(-1, CHROME_H as i32);
+                        vbox.pack_start(&chrome_widget, false, false, 0);
+                        vbox.pack_start(&content_widget, true, true, 0);
+                        vbox.show_all();
+                    }
+                }
+            }
+
+            // Header injection
             #[cfg(target_os = "linux")]
             {
                 use webkit2gtk::{URIRequestExt, WebResourceExt, WebViewExt};
@@ -95,27 +112,6 @@ pub fn run() {
                     );
                 })?;
             }
-
-            // Sync content window position/size when chrome moves or resizes
-            let content_clone = content.clone();
-            chrome.on_window_event(move |event| {
-                match event {
-                    tauri::WindowEvent::Moved(pos) => {
-                        let _ = content_clone.set_position(
-                            tauri::PhysicalPosition::new(pos.x, pos.y + CHROME_H as i32)
-                        );
-                    }
-                    tauri::WindowEvent::Resized(size) => {
-                        let _ = content_clone.set_size(
-                            tauri::PhysicalSize::new(size.width, size.height)
-                        );
-                    }
-                    tauri::WindowEvent::CloseRequested { .. } => {
-                        let _ = content_clone.close();
-                    }
-                    _ => {}
-                }
-            });
 
             Ok(())
         })
