@@ -1,7 +1,7 @@
-
 <p align="center">
   <img src="assets/onyxia_banner.png" alt="Onyxia Banner">
 </p>
+
 # Onyxia
 
 **The Sovereign Browser.**
@@ -31,7 +31,7 @@ Onyxia is built with:
 - **[Tauri v2](https://tauri.app)** — Rust backend, WebKitGTK webview on Linux
 - **Rust** — all security-critical logic: vault, identity, protocol handling
 - **TypeScript** — browser chrome UI only; never touches sensitive data
-- **[EdisonDB](https://github.com/aieonyx/edisondb)** — embedded sovereign database for credentials and identity (C7)
+- **[EdisonDB](https://github.com/aieonyx/edisondb)** — embedded sovereign database for credentials and identity (C8)
 
 ### Security model
 
@@ -39,6 +39,11 @@ Onyxia is built with:
 - Credentials never cross the IPC boundary in plaintext.
 - The URL bar trust indicator (✶ sovereign, 🔒 HTTPS, ⚠️ insecure) is set by the backend, never by page logic.
 - Vault is locked by default. Nothing sensitive is served in locked state.
+
+### Protocol support
+
+- `https://` — standard TLS web, legacy connection mode
+- `awp://` — AXON Web Protocol, sovereign mesh routing (AWP mesh: future release)
 
 ---
 
@@ -48,16 +53,17 @@ Onyxia is built with:
 |-----------|-------------|--------|
 | C1 | Tauri v2 shell — browser chrome, tabs, navigation | ✅ Complete |
 | C2 | AIEONYX CA pre-installation | 🔄 In progress |
-| C3 | AXON-Client header emission | Planned |
-| C4 | `awp://` protocol handler | Planned |
-| C5 | ARPi status bar | Planned |
-| C6 | Trust indicators (✶, 🔒, ⚠️, 🔵) | Planned |
-| C7 | EdisonDB embedded — sovereign credential vault | Planned |
-| C8 | Password manager UI | Planned |
-| C9 | AWIT token manager | Planned |
-| C10 | Digital Legacy integration | Planned |
-| C11 | USB Master Key binding | Planned |
-| C12 | v1.0 release — Linux | Planned |
+| C3 | AXON-Client header emission | ✅ Complete |
+| C4 | `awp://` protocol handler | ✅ Complete |
+| C5 | ARPi status bar, protocol switcher, window controls, tab URL restore | ✅ Complete |
+| C6 | Trust indicators (✶, 🔒, ⚠️), tab reorder | 🔄 In progress |
+| C7 | AWP Sovereign Threat Sensor | Planned |
+| C8 | EdisonDB embedded — session persistence, credential vault | Planned |
+| C9 | Password manager UI | Planned |
+| C10 | AWIT token manager | Planned |
+| C11 | Digital Legacy integration | Planned |
+| C12 | USB Master Key binding + Servo engine evaluation | Planned |
+| C13 | v1.0 release — Linux | Planned |
 
 ---
 
@@ -106,8 +112,8 @@ cargo tauri dev
 | Platform | Status |
 |----------|--------|
 | Linux (Ubuntu, Pop!_OS, Debian) | ✅ Primary target |
-| macOS | Planned — C12+ |
-| Windows | Planned — C12+ |
+| macOS | Planned — C13+ |
+| Windows | Planned — C13+ |
 
 ---
 
