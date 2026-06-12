@@ -3,3 +3,4 @@
 
 pub mod navigation;
 pub mod page_state;
+pub mod window_controls;

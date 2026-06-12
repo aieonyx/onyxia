@@ -71,6 +71,10 @@ impl TabManager {
         self.active_id
     }
 
+    pub fn active_tab(&self) -> Option<&Tab> {
+        self.tabs.iter().find(|t| t.id == self.active_id)
+    }
+
     #[allow(dead_code)]
     pub fn tabs(&self) -> &Vec<Tab> {
         &self.tabs

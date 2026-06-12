@@ -30,7 +30,6 @@ pub async fn navigate(
         return Err("Unsupported scheme.".to_string());
     }
 
-    // Child webview (not WebviewWindow) — use get_webview()
     if let Some(content) = app.get_webview("content") {
         content
             .navigate(url.parse().map_err(|e: url::ParseError| e.to_string())?)
@@ -80,7 +79,21 @@ pub async fn close_tab(id: u32, tab_state: State<'_, TabState>) -> Result<(), St
 }
 
 #[tauri::command]
-pub async fn switch_tab(id: u32, tab_state: State<'_, TabState>) -> Result<(), String> {
-    let mut mgr = tab_state.lock().map_err(|e: std::sync::PoisonError<_>| e.to_string())?;
-    mgr.switch_tab(id)
+pub async fn switch_tab(id: u32, tab_state: State<'_, TabState>, app: AppHandle) -> Result<(), String> {
+    let url = {
+        let mut mgr = tab_state.lock().map_err(|e: std::sync::PoisonError<_>| e.to_string())?;
+        mgr.switch_tab(id)?;
+        mgr.active_tab().map(|t| t.url.clone())
+    };
+    if let Some(url) = url {
+        if let Some(content) = app.get_webview("content") {
+            let target = if url == "about:blank" || url.is_empty() {
+                "about:blank".to_string()
+            } else {
+                url
+            };
+            let _ = content.navigate(target.parse().unwrap());
+        }
+    }
+    Ok(())
 }

@@ -10,7 +10,7 @@ use browser::header_injection::{axon_client_value, AXON_CLIENT_HEADER, should_in
 use browser::tab_manager::TabManager;
 use commands::page_state::CurrentPageState;
 use std::sync::{Arc, Mutex};
-use tauri::{LogicalPosition, LogicalSize, Manager};
+use tauri::{LogicalPosition, LogicalSize, Manager, Emitter};
 use tauri::webview::WebviewBuilder;
 use tauri::window::WindowBuilder;
 
@@ -42,6 +42,10 @@ pub fn run() {
             commands::navigation::switch_tab,
             commands::page_state::get_page_state,
             commands::page_state::update_page_url,
+            commands::window_controls::minimize_window,
+            commands::window_controls::maximize_window,
+            commands::window_controls::close_window,
+            commands::window_controls::start_drag,
         ])
         .setup(move |app| {
             let header_val = header_value.clone();
@@ -87,6 +91,28 @@ pub fn run() {
                         vbox.show_all();
                     }
                 }
+            }
+
+
+            // Track content webview URL changes and sync to tab state
+            #[cfg(target_os = "linux")]
+            {
+                use webkit2gtk::WebViewExt;
+                let app_handle = app.handle().clone();
+                content.with_webview(move |wv| {
+                    let inner = wv.inner();
+                    let app2 = app_handle.clone();
+                    inner.connect_uri_notify(move |view| {
+                        if let Some(uri) = view.uri() {
+                            let uri_str = uri.to_string();
+                            let blank = uri_str == "about:blank";
+                            let empty = uri_str.is_empty();
+                            if !blank && !empty {
+                                let _ = app2.emit("url-changed", uri_str);
+                            }
+                        }
+                    });
+                })?;
             }
 
             // Header injection

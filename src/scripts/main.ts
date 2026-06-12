@@ -4,6 +4,8 @@
 // INVARIANT: this script never touches vault data, AWIT tokens, or credentials.
 
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
+import { Window, getCurrent, getAll } from "@tauri-apps/api/window";
 
 interface ArpiStatus {
   schema: string;
@@ -226,9 +228,31 @@ newTabBtn.addEventListener("click", newTab);
 renderTabs();
 updatePageState("about:blank");
 
-// Window controls — target parent window, not chrome webview context
-import { Window } from "@tauri-apps/api/window";
-const mainWindow = new Window("main");
-document.getElementById("btn-minimize")?.addEventListener("click", () => mainWindow.minimize());
-document.getElementById("btn-maximize")?.addEventListener("click", () => mainWindow.toggleMaximize());
-document.getElementById("btn-close")?.addEventListener("click", () => mainWindow.close());
+// Window controls via Rust commands
+document.getElementById("btn-minimize")?.addEventListener("click", () => invoke("minimize_window"));
+document.getElementById("btn-maximize")?.addEventListener("click", () => invoke("maximize_window"));
+document.getElementById("btn-close")?.addEventListener("click", () => invoke("close_window"));
+
+// Window drag — child webview must invoke start_dragging explicitly
+document.getElementById("tab-strip")?.addEventListener("mousedown", (e) => {
+    const target = e.target as HTMLElement;
+    // Only drag on empty strip area, not on tabs or buttons
+    if (target.id === "tab-strip" || target.id === "tabs-container") {
+        invoke("start_drag");
+    }
+});
+
+// Sync URL bar when content webview navigates (e.g. search, redirects)
+listen<string>("url-changed", (event) => {
+    const url = event.payload;
+    const activeTab = tabs.find(t => t.id === activeTabId);
+    if (activeTab) {
+        activeTab.url = url;
+        activeTab.title = url;
+        urlInput.value = url;
+        updatePageState(url);
+        renderTabs();
+        // Sync URL back to Rust TabManager so switch_tab restores correctly
+        invoke("update_page_url", { url }).catch(() => {});
+    }
+});
