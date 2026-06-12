@@ -21,9 +21,9 @@
 
 html, body {
   width: 100%;
-  height: 108px;
-  max-height: 108px;
-  overflow: hidden;
+  height: 160px;
+  max-height: 160px;
+  overflow: visible;
   background: var(--chrome-bg);
   color: var(--text-primary);
   font-family: var(--font-ui);
@@ -35,8 +35,8 @@ html, body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 108px;
-  overflow: hidden;
+  height: 160px;
+  overflow: visible;
 }
 
 /* Tab Strip — 36px */

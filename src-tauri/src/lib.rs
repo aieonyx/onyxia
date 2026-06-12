@@ -14,7 +14,7 @@ use tauri::{LogicalPosition, LogicalSize, Manager, Emitter};
 use tauri::webview::WebviewBuilder;
 use tauri::window::WindowBuilder;
 
-const CHROME_H: f64 = 108.0;
+const CHROME_H: f64 = 160.0;
 const WIN_W:    f64 = 1280.0;
 const WIN_H:    f64 = 800.0;
 
