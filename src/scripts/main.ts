@@ -226,10 +226,9 @@ newTabBtn.addEventListener("click", newTab);
 renderTabs();
 updatePageState("about:blank");
 
-// Window controls
-import { getCurrentWindow } from "@tauri-apps/api/window";
-const appWindow = getCurrentWindow();
-document.getElementById("btn-minimize")?.addEventListener("click", () => appWindow.minimize());
-document.getElementById("btn-maximize")?.addEventListener("click", () => appWindow.toggleMaximize());
-document.getElementById("btn-close")?.addEventListener("click", () => appWindow.close());
-
+// Window controls — target parent window, not chrome webview context
+import { Window } from "@tauri-apps/api/window";
+const mainWindow = new Window("main");
+document.getElementById("btn-minimize")?.addEventListener("click", () => mainWindow.minimize());
+document.getElementById("btn-maximize")?.addEventListener("click", () => mainWindow.toggleMaximize());
+document.getElementById("btn-close")?.addEventListener("click", () => mainWindow.close());
