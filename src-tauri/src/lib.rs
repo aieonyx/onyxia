@@ -7,6 +7,7 @@ mod commands;
 use browser::arpi_state::PageState;
 use browser::awp_handler::handle_awp_request;
 use browser::header_injection::{axon_client_value, AXON_CLIENT_HEADER, should_inject_header};
+use browser::sts::{is_tracker, is_mixed_content};
 use browser::tab_manager::TabManager;
 use commands::page_state::CurrentPageState;
 use std::sync::{Arc, Mutex};
@@ -121,17 +122,33 @@ pub fn run() {
             {
                 use webkit2gtk::{URIRequestExt, WebResourceExt, WebViewExt};
                 let hv = header_val.clone();
+                let app3 = app.handle().clone();
                 content.with_webview(move |wv| {
                     let inner = wv.inner();
                     let h = hv.clone();
+                    let app3 = app3.clone();
                     inner.connect_resource_load_started(
-                        move |_view,
+                        move |view,
                               resource: &webkit2gtk::WebResource,
                               request: &webkit2gtk::URIRequest| {
                             if let Some(url) = resource.uri() {
-                                if should_inject_header(url.as_str()) {
+                                let url_str = url.as_str();
+                                // C3: AXON-Client header injection
+                                if should_inject_header(url_str) {
                                     if let Some(headers) = request.http_headers() {
                                         headers.append(AXON_CLIENT_HEADER, h.as_str());
+                                    }
+                                }
+                                // C7-A: STS tracker detection
+                                if let Some(threat) = is_tracker(url_str) {
+                                    log::warn!("STS: tracker blocked: {} on {}", threat.domain, url_str);
+                                    let _ = app3.emit("threat-detected", &threat);
+                                }
+                                // C7-A: STS mixed content detection
+                                if let Some(page_url) = view.uri() {
+                                    if let Some(threat) = is_mixed_content(page_url.as_str(), url_str) {
+                                        log::warn!("STS: mixed content: {}", url_str);
+                                        let _ = app3.emit("threat-detected", &threat);
                                     }
                                 }
                             }

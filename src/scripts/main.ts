@@ -311,3 +311,35 @@ listen<string>("url-changed", (event) => {
         invoke("update_page_url", { url }).catch(() => {});
     }
 });
+
+// C7-A: STS threat detection listener
+interface ThreatEvent {
+  kind: string;
+  domain: string;
+  url: string;
+}
+
+let threatCount = 0;
+
+listen<ThreatEvent>("threat-detected", (event) => {
+  const threat = event.payload;
+  threatCount++;
+  console.warn("STS threat:", threat.kind, threat.domain);
+
+  // Flash anomaly layer red
+  const anomalyEl = layerEls["anomaly"];
+  if (anomalyEl) {
+    anomalyEl.className = "arpi-layer failed";
+    anomalyEl.title = threat.kind + ": " + threat.domain;
+  }
+
+  // Show ARPi bar if hidden
+  arpiBar.classList.remove("hidden");
+  arpiLegacy.classList.add("hidden");
+  arpiSovereign.classList.remove("hidden");
+
+  // Update trust indicator to warning
+  trustIndicator.textContent = "▲";
+  trustIndicator.className = "trust-http";
+  trustIndicator.title = "STS: " + threatCount + " threat(s) detected";
+});
