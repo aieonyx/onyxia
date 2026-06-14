@@ -6,13 +6,14 @@
 
 **The Sovereign Browser.**
 
-Onyxia is a desktop web browser built for people who refuse to be tracked, profiled, or reduced to a data point. It is part of the [AIEONYX](https://github.com/aieonyx) platform — a sovereign digital infrastructure stack built on the principle that every human is supreme and sovereign over their own digital existence.
+Onyxia is a desktop web browser designed for individuals who choose not to be tracked, profiled, or treated as mere data points. It is part of the AIEONYX platform, a digital infrastructure built on the belief that every person is in control of their own digital existence. 
+
 
 ---
 
 ## What makes Onyxia different
 
-Most browsers are built around the assumption that your browsing data is a resource to be harvested. Onyxia is built around the opposite assumption: your data belongs to you, lives on your device, and leaves only when you explicitly choose.
+Most browsers operate under the idea that your browsing data is something to collect and exploit. Onyxia starts from a different perspective: your data is yours, it stays on your device, and it only leaves when you decide.
 
 | Feature | Legacy Browser | Onyxia |
 |---------|---------------|--------|
