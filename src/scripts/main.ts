@@ -300,6 +300,12 @@ document.getElementById("tab-strip")?.addEventListener("mousedown", (e) => {
 listen<string>("url-changed", (event) => {
     if (isSwitchingTab) return;
     const url = event.payload;
+    // Filter out tracker/sub-resource URLs that are not top-level navigations
+    const trackerPatterns = [
+      "googletagmanager.com", "google-analytics.com", "doubleclick.net",
+      "googlesyndication.com", "facebook.net", "hotjar.com", "clarity.ms"
+    ];
+    if (trackerPatterns.some(t => url.includes(t))) return;
     const activeTab = tabs.find(t => t.id === activeTabId);
     if (activeTab) {
         activeTab.url = url;
@@ -342,4 +348,41 @@ listen<ThreatEvent>("threat-detected", (event) => {
   trustIndicator.textContent = "▲";
   trustIndicator.className = "trust-http";
   trustIndicator.title = "STS: " + threatCount + " threat(s) detected";
+});
+
+// C7-B: SSV blocked navigation listener
+interface SsvVerdict {
+  threat: ThreatEvent;
+  suggested_real: string | null;
+  block: boolean;
+}
+
+listen<SsvVerdict>("ssv-blocked", (event) => {
+  const v = event.payload;
+  const kind = v.threat.kind.replace(/_/g, " ");
+  const suggested = v.suggested_real ? "Did you mean: " + v.suggested_real : "";
+  const msg = "SOVEREIGN BLOCK: " + kind + " — " + v.threat.domain + (suggested ? ". " + suggested : "");
+
+  // Show in URL bar as warning
+  urlInput.value = "BLOCKED: " + v.threat.domain;
+  urlInput.style.color = "#FF3D00";
+  setTimeout(() => {
+    urlInput.style.color = "";
+    urlInput.value = "";
+  }, 5000);
+
+  // Flash anomaly layer
+  const anomalyEl = layerEls["anomaly"];
+  if (anomalyEl) {
+    anomalyEl.className = "arpi-layer failed";
+    anomalyEl.title = msg;
+  }
+  arpiBar.classList.remove("hidden");
+  arpiLegacy.classList.add("hidden");
+  arpiSovereign.classList.remove("hidden");
+  trustIndicator.textContent = "✗";
+  trustIndicator.className = "trust-http";
+  trustIndicator.title = msg;
+
+  console.warn("SSV blocked:", v);
 });

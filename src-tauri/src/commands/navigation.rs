@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::browser::tab_manager::{Tab, TabManager};
+use crate::browser::ssv::verify_site;
 use std::sync::{Arc, Mutex};
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 type TabState = Arc<Mutex<TabManager>>;
 
@@ -28,6 +29,13 @@ pub async fn navigate(
         && !url.starts_with("awp://")
     {
         return Err("Unsupported scheme.".to_string());
+    }
+
+    // C7-B: SSV check before navigation
+    if let Some(verdict) = verify_site(url.as_str()) {
+        log::warn!("SSV blocked: {} -> {}", verdict.threat.kind, verdict.threat.domain);
+        let _ = app.emit("ssv-blocked", &verdict);
+        return Err(format!("SSV: {} blocked — {}", verdict.threat.kind, verdict.threat.domain));
     }
 
     if let Some(content) = app.get_webview("content") {
@@ -86,7 +94,14 @@ pub async fn switch_tab(id: u32, tab_state: State<'_, TabState>, app: AppHandle)
         mgr.active_tab().map(|t| t.url.clone())
     };
     if let Some(url) = url {
-        if let Some(content) = app.get_webview("content") {
+        // C7-B: SSV check before navigation
+    if let Some(verdict) = verify_site(url.as_str()) {
+        log::warn!("SSV blocked: {} -> {}", verdict.threat.kind, verdict.threat.domain);
+        let _ = app.emit("ssv-blocked", &verdict);
+        return Err(format!("SSV: {} blocked — {}", verdict.threat.kind, verdict.threat.domain));
+    }
+
+    if let Some(content) = app.get_webview("content") {
             let target = if url == "about:blank" || url.is_empty() {
                 "about:blank".to_string()
             } else {
