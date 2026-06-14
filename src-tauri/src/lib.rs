@@ -69,7 +69,8 @@ pub fn run() {
                 WebviewBuilder::new(
                     "content",
                     tauri::WebviewUrl::External("about:blank".parse().unwrap()),
-                ),
+                )
+                .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"),
                 LogicalPosition::new(0.0, CHROME_H),
                 LogicalSize::new(WIN_W, WIN_H - CHROME_H),
             )?;
