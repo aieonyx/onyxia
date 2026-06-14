@@ -231,3 +231,26 @@ html, body {
 }
 #window-controls button:hover { background: var(--btn-hover); color: var(--text-primary); }
 #btn-close:hover { background: #c0392b !important; color: #fff !important; }
+
+/* ── Trust Indicator (C6-A) ── */
+#trust-indicator {
+  font-size: 13px;
+  flex-shrink: 0;
+  min-width: 18px;
+  text-align: center;
+  cursor: default;
+  user-select: none;
+}
+#trust-indicator.trust-sovereign {
+  color: #00E5FF;
+  filter: drop-shadow(0 0 4px rgba(0,229,255,0.5));
+}
+#trust-indicator.trust-https {
+  color: #00C853;
+}
+#trust-indicator.trust-http {
+  color: #FFB300;
+}
+#trust-indicator.trust-unknown {
+  color: #7a7a9a;
+}

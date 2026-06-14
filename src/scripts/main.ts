@@ -44,6 +44,7 @@ const protocolDropdown = document.getElementById("protocol-dropdown") as HTMLDiv
 const httpsCheck = document.getElementById("https-check") as HTMLSpanElement;
 const awpCheck = document.getElementById("awp-check") as HTMLSpanElement;
 const arpiBar = document.getElementById("arpi-bar") as HTMLDivElement;
+const trustIndicator = document.getElementById("trust-indicator") as HTMLSpanElement;
 const arpiLegacy = document.getElementById("arpi-legacy") as HTMLDivElement;
 const arpiSovereign = document.getElementById("arpi-sovereign") as HTMLDivElement;
 
@@ -96,14 +97,30 @@ function renderPageState(state: PageState): void {
     protocolIcon.textContent = "✶";
     awpCheck.textContent = "✓";
     httpsCheck.textContent = "";
+    trustIndicator.textContent = "⬡";
+    trustIndicator.className = "trust-sovereign";
+    trustIndicator.title = "Sovereign connection — AWP active";
   } else if (state.protocol === "https") {
     protocolIcon.textContent = "🔒";
     httpsCheck.textContent = "✓";
     awpCheck.textContent = "";
+    trustIndicator.textContent = "●";
+    trustIndicator.className = "trust-https";
+    trustIndicator.title = "HTTPS — encrypted, legacy connection";
+  } else if (state.protocol === "http") {
+    protocolIcon.textContent = "⚠";
+    httpsCheck.textContent = "";
+    awpCheck.textContent = "";
+    trustIndicator.textContent = "▲";
+    trustIndicator.className = "trust-http";
+    trustIndicator.title = "Insecure connection — no TLS";
   } else {
     protocolIcon.textContent = "";
     httpsCheck.textContent = "";
     awpCheck.textContent = "";
+    trustIndicator.textContent = "○";
+    trustIndicator.className = "trust-unknown";
+    trustIndicator.title = "No connection";
   }
 
   if (state.protocol === "none" || !state.protocol) {
