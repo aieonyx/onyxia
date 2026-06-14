@@ -10,7 +10,7 @@ use browser::header_injection::{axon_client_value, AXON_CLIENT_HEADER, should_in
 use browser::tab_manager::TabManager;
 use commands::page_state::CurrentPageState;
 use std::sync::{Arc, Mutex};
-use tauri::{LogicalPosition, LogicalSize, Manager, Emitter};
+use tauri::{LogicalPosition, LogicalSize, Emitter};
 use tauri::webview::WebviewBuilder;
 use tauri::window::WindowBuilder;
 
@@ -56,7 +56,7 @@ pub fn run() {
                 .decorations(false)
                 .build()?;
 
-            let chrome = window.add_child(
+            let _chrome = window.add_child(
                 WebviewBuilder::new(
                     "chrome",
                     tauri::WebviewUrl::App("index.html".into()),
