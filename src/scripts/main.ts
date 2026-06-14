@@ -30,6 +30,7 @@ interface Tab {
 
 let tabs: Tab[] = [{ id: 1, url: "about:blank", title: "New Tab", trust: "unknown" }];
 let activeTabId = 1;
+let isSwitchingTab = false;
 
 // DOM references
 const urlInput = document.getElementById("url-input") as HTMLInputElement;
@@ -166,7 +167,40 @@ function renderTabs(): void {
     });
     el.appendChild(titleSpan);
     el.appendChild(closeBtn);
-    el.addEventListener("click", () => switchTab(tab.id));
+    el.addEventListener("click", () => { if (!didDrag) switchTab(tab.id); });
+
+    // C6-B: Tab drag-to-reorder
+    let didDrag = false;
+    el.draggable = true;
+    el.addEventListener("dragstart", (e) => {
+      didDrag = true;
+      el.classList.add("dragging");
+      e.dataTransfer?.setData("text/plain", String(tab.id));
+    });
+    el.addEventListener("dragend", () => {
+      el.classList.remove("dragging");
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("drag-over"));
+      setTimeout(() => { didDrag = false; }, 50);
+    });
+    el.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("drag-over"));
+      el.classList.add("drag-over");
+    });
+    el.addEventListener("drop", (e) => {
+      e.preventDefault();
+      el.classList.remove("drag-over");
+      const draggedId = Number(e.dataTransfer?.getData("text/plain"));
+      const targetId = tab.id;
+      if (draggedId === targetId) return;
+      const fromIdx = tabs.findIndex(t => t.id === draggedId);
+      const toIdx   = tabs.findIndex(t => t.id === targetId);
+      if (fromIdx === -1 || toIdx === -1) return;
+      const moved = tabs.splice(fromIdx, 1)[0];
+      tabs.splice(toIdx, 0, moved);
+      renderTabs();
+    });
+
     tabsContainer.appendChild(el);
   });
   const activeTab = tabs.find((t) => t.id === activeTabId);
@@ -223,10 +257,13 @@ async function closeTab(id: number): Promise<void> {
 
 async function switchTab(id: number): Promise<void> {
   try {
+    isSwitchingTab = true;
     await invoke("switch_tab", { id });
     activeTabId = id;
     renderTabs();
+    setTimeout(() => { isSwitchingTab = false; }, 1500);
   } catch (err) {
+    isSwitchingTab = false;
     console.error("Switch tab error:", err);
   }
 }
@@ -261,6 +298,7 @@ document.getElementById("tab-strip")?.addEventListener("mousedown", (e) => {
 
 // Sync URL bar when content webview navigates (e.g. search, redirects)
 listen<string>("url-changed", (event) => {
+    if (isSwitchingTab) return;
     const url = event.payload;
     const activeTab = tabs.find(t => t.id === activeTabId);
     if (activeTab) {
