@@ -46,7 +46,32 @@
         <input id="url-input" type="text" spellcheck="false"
                placeholder="Enter address" autocomplete="off" />
       </div>
+      <button id="vault-btn" title="Sovereign Vault">&#128274;</button>
     </div>
+
+    <!-- Vault Panel -->
+    <div id="vault-panel" class="hidden">
+      <div id="vault-header">
+        <span id="vault-title">&#128274; Sovereign Vault</span>
+        <button id="vault-close">&#10005;</button>
+      </div>
+      <div id="vault-status">
+        <span id="vault-lock-status">Vault locked</span>
+        <button id="vault-unlock-btn">Unlock</button>
+      </div>
+      <div id="vault-credentials" class="hidden">
+        <div id="vault-list"></div>
+      </div>
+    </div>
+
+    <!-- Save Credential Banner -->
+    <div id="save-credential-banner" class="hidden">
+      <span id="save-cred-msg">Save password for <strong id="save-cred-host"></strong>?</span>
+      <button id="save-cred-yes">Save</button>
+      <button id="save-cred-no">Never</button>
+      <button id="save-cred-dismiss">&#10005;</button>
+    </div>
+
     <div id="arpi-bar">
       <div id="arpi-legacy">
         <span class="arpi-legacy-icon">&#128274;</span>

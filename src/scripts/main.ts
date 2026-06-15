@@ -453,3 +453,103 @@ listen<SsvVerdict>("ssv-blocked", (event) => {
 
   console.warn("SSV blocked:", v);
 });
+
+// ── C9: Vault UI ─────────────────────────────────────────────
+const vaultBtn = document.getElementById("vault-btn") as HTMLButtonElement;
+const vaultPanel = document.getElementById("vault-panel") as HTMLDivElement;
+const vaultClose = document.getElementById("vault-close") as HTMLButtonElement;
+const vaultUnlockBtn = document.getElementById("vault-unlock-btn") as HTMLButtonElement;
+const vaultLockStatus = document.getElementById("vault-lock-status") as HTMLSpanElement;
+const vaultCredentials = document.getElementById("vault-credentials") as HTMLDivElement;
+const vaultList = document.getElementById("vault-list") as HTMLDivElement;
+const saveBanner = document.getElementById("save-credential-banner") as HTMLDivElement;
+const saveCredHost = document.getElementById("save-cred-host") as HTMLElement;
+const saveCredYes = document.getElementById("save-cred-yes") as HTMLButtonElement;
+const saveCredNo = document.getElementById("save-cred-no") as HTMLButtonElement;
+const saveCredDismiss = document.getElementById("save-cred-dismiss") as HTMLButtonElement;
+
+let vaultUnlocked = false;
+let vaultCredentialsList: { domain: string; username: string; note: string }[] = [];
+
+// Toggle vault panel
+vaultBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  vaultPanel.classList.toggle("hidden");
+});
+
+vaultClose.addEventListener("click", () => {
+  vaultPanel.classList.add("hidden");
+});
+
+document.addEventListener("click", (e) => {
+  if (!vaultPanel.contains(e.target as Node) && e.target !== vaultBtn) {
+    vaultPanel.classList.add("hidden");
+  }
+});
+
+// Vault unlock (C9-UI: master password prompt)
+vaultUnlockBtn.addEventListener("click", () => {
+  const masterPwd = prompt("Enter master password:");
+  // C9-UI: accept any non-empty password for UI prototype
+  // Real encryption added when EdisonDB P4 encryption lands
+  vaultUnlocked = true;
+  vaultLockStatus.textContent = "Vault unlocked";
+  vaultLockStatus.style.color = "#00C853";
+  vaultUnlockBtn.textContent = "Lock";
+  vaultBtn.classList.add("unlocked");
+  vaultCredentials.classList.remove("hidden");
+  renderVaultList();
+  vaultUnlockBtn.onclick = () => {
+    vaultUnlocked = false;
+    vaultLockStatus.textContent = "Vault locked";
+    vaultLockStatus.style.color = "";
+    vaultUnlockBtn.textContent = "Unlock";
+    vaultBtn.classList.remove("unlocked");
+    vaultCredentials.classList.add("hidden");
+    vaultUnlockBtn.onclick = null;
+  };
+});
+
+function renderVaultList(): void {
+  vaultList.innerHTML = "";
+  if (vaultCredentialsList.length === 0) {
+    vaultList.innerHTML = "<div style='color:var(--text-secondary);font-size:12px;padding:8px'>No saved credentials</div>";
+    return;
+  }
+  vaultCredentialsList.forEach(cred => {
+    const el = document.createElement("div");
+    el.className = "vault-entry";
+    el.innerHTML = `
+      <div>
+        <div class="vault-entry-domain">${cred.domain}</div>
+        <div class="vault-entry-user">${cred.username}</div>
+      </div>
+      <button class="vault-fill-btn" data-domain="${cred.domain}">Fill</button>
+    `;
+    vaultList.appendChild(el);
+  });
+}
+
+// Save credential banner handlers
+saveCredYes.addEventListener("click", () => {
+  const host = saveCredHost.textContent || "";
+  vaultCredentialsList.push({ domain: host, username: "(saved)", note: "C9-UI prototype" });
+  saveBanner.classList.add("hidden");
+  renderVaultList();
+});
+
+saveCredNo.addEventListener("click", () => saveBanner.classList.add("hidden"));
+saveCredDismiss.addEventListener("click", () => saveBanner.classList.add("hidden"));
+
+// Show save banner when navigating to a new HTTPS site (C9-UI demo)
+listen<string>("url-changed", (event) => {
+  const url = event.payload;
+  if (url.startsWith("https://") && url.indexOf("google") === -1 && url.indexOf("about") === -1) {
+    const host = url.replace("https://", "").split("/")[0];
+    const alreadySaved = vaultCredentialsList.some(c => c.domain === host);
+    if (alreadySaved === false) {
+      saveCredHost.textContent = host;
+      saveBanner.classList.remove("hidden");
+    }
+  }
+});
