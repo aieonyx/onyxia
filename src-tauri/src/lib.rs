@@ -47,6 +47,8 @@ pub fn run() {
             commands::window_controls::maximize_window,
             commands::window_controls::close_window,
             commands::window_controls::start_drag,
+            commands::session::save_session,
+            commands::session::load_session,
         ])
         .setup(move |app| {
             let header_val = header_value.clone();

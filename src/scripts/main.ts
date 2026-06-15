@@ -31,6 +31,7 @@ interface Tab {
 let tabs: Tab[] = [{ id: 1, url: "about:blank", title: "New Tab", trust: "unknown" }];
 let activeTabId = 1;
 let isSwitchingTab = false;
+let isLoadingSession = false;
 
 // DOM references
 const urlInput = document.getElementById("url-input") as HTMLInputElement;
@@ -225,6 +226,7 @@ async function navigate(url: string): Promise<void> {
       await updatePageState(normalized);
     }
     renderTabs();
+    saveSessionDebounced();
   } catch (err) {
     console.error("Navigation error:", err);
   }
@@ -237,6 +239,7 @@ async function newTab(): Promise<void> {
     activeTabId = tab.id;
     renderTabs();
     await updatePageState("about:blank");
+    saveSessionDebounced();
   } catch (err) {
     console.error("New tab error:", err);
   }
@@ -250,6 +253,7 @@ async function closeTab(id: number): Promise<void> {
       activeTabId = tabs[tabs.length - 1].id;
     }
     renderTabs();
+    saveSessionDebounced();
   } catch (err) {
     console.error("Close tab error:", err);
   }
@@ -262,6 +266,7 @@ async function switchTab(id: number): Promise<void> {
     activeTabId = id;
     renderTabs();
     setTimeout(() => { isSwitchingTab = false; }, 1500);
+    saveSessionDebounced();
   } catch (err) {
     isSwitchingTab = false;
     console.error("Switch tab error:", err);
@@ -281,6 +286,67 @@ newTabBtn.addEventListener("click", newTab);
 // Initial render
 renderTabs();
 updatePageState("about:blank");
+
+// C8: EdisonDB session persistence
+interface SessionTab {
+  id: number;
+  url: string;
+  title: string;
+}
+
+async function saveSession(): Promise<void> {
+  console.log("SAVE SESSION: tabs count =", tabs.length, tabs.map(t => t.url));
+  try {
+    const sessionTabs: SessionTab[] = tabs.map(t => ({
+      id: t.id,
+      url: t.url === "about:blank" ? "" : t.url,
+      title: t.title
+    }));
+    await invoke("save_session", { tabs: sessionTabs, activeId: activeTabId });
+  } catch (err) {
+    console.warn("Session save FAILED:", err);
+    // Write error to URL bar briefly
+    urlInput.value = "DB ERR: " + String(err).slice(0,40);
+    setTimeout(() => { urlInput.value = ""; }, 3000);
+  }
+}
+
+async function loadSession(): Promise<void> {
+  isLoadingSession = true;
+  try {
+    const session = await invoke<{ tabs: SessionTab[]; active: number } | null>("load_session");
+    if (session && session.tabs.length > 0) {
+      tabs = session.tabs.map(t => ({
+        id: t.id,
+        url: t.url || "about:blank",
+        title: t.title || "New Tab",
+        trust: "unknown"
+      }));
+      activeTabId = session.active;
+      renderTabs();
+      // Navigate to active tab URL
+      // Restore tab UI only — user clicks to navigate (avoids WebKit loop)
+      isLoadingSession = false;
+      renderTabs();
+      const activeTab = tabs.find(t => t.id === activeTabId);
+      if (activeTab && activeTab.url && activeTab.url !== "about:blank") {
+        urlInput.value = activeTab.url;
+      }
+      console.log("Session restored:", tabs.length, "tabs");
+    }
+  } catch (err) {
+    console.warn("Session load failed (EdisonDB offline?):", err);
+  }
+}
+
+// Auto-save session on tab changes
+async function saveSessionDebounced(): Promise<void> {
+  if (isLoadingSession) return;
+  await saveSession([...tabs]);
+}
+
+// C8: Load session on startup
+loadSession();
 
 // Window controls via Rust commands
 document.getElementById("btn-minimize")?.addEventListener("click", () => invoke("minimize_window"));
@@ -315,6 +381,7 @@ listen<string>("url-changed", (event) => {
         renderTabs();
         // Sync URL back to Rust TabManager so switch_tab restores correctly
         invoke("update_page_url", { url }).catch(() => {});
+        saveSessionDebounced();
     }
 });
 
