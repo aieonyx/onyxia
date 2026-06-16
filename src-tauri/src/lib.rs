@@ -49,6 +49,10 @@ pub fn run() {
             commands::window_controls::start_drag,
             commands::session::save_session,
             commands::session::load_session,
+            commands::legacy::save_testament,
+            commands::legacy::load_testament,
+            commands::legacy::ping_heartbeat,
+            commands::legacy::get_legacy_status,
         ])
         .setup(move |app| {
             let header_val = header_value.clone();

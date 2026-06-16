@@ -276,7 +276,7 @@ html, body {
 
 #vault-panel {
   position: fixed;
-  top: 108px;
+  top: 44px;
   right: 10px;
   width: 280px;
   background: #12121a;
@@ -366,4 +366,68 @@ html, body {
   background: none; border: 1px solid var(--tab-border);
   color: var(--text-secondary); cursor: pointer; font-size: 11px;
   padding: 3px 8px; border-radius: 4px;
+}
+
+/* ── C10: Digital Legacy ── */
+#legacy-btn {
+  background: none; border: none; color: var(--text-secondary);
+  cursor: pointer; font-size: 16px; width: 30px; height: 30px;
+  border-radius: 6px; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+#legacy-btn:hover { background: var(--btn-hover); color: #fb923c; }
+#legacy-btn.legacy-active { color: #4ade80; }
+#legacy-btn.legacy-warning { color: #fb923c; }
+#legacy-btn.legacy-triggered { color: #f87171; animation: pulse 1s infinite; }
+#legacy-btn.legacy-inactive { color: var(--text-secondary); opacity: 0.5; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+}
+
+#legacy-panel {
+  position: fixed; top: 44px; right: 10px; width: 280px;
+  max-height: 60px; overflow-y: auto; display: none;
+  background: #12121a; border: 1px solid var(--tab-border);
+  border-radius: 8px; z-index: 9998;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+#legacy-panel.hidden { display: none; }
+
+#legacy-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; background: #0d0d16;
+  border-bottom: 1px solid var(--tab-border);
+}
+#legacy-title { color: #fb923c; font-size: 13px; font-weight: 600; }
+#legacy-close {
+  background: none; border: none; color: var(--text-secondary);
+  cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px;
+}
+#legacy-close:hover { background: var(--btn-hover); }
+
+#legacy-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+.legacy-section { display: flex; flex-direction: column; gap: 4px; }
+.legacy-section label { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+.legacy-section input, .legacy-section select {
+  background: #1a1a2a; border: 1px solid var(--tab-border);
+  color: var(--text-primary); border-radius: 4px;
+  padding: 5px 8px; font-size: 12px; outline: none;
+}
+.legacy-section input:focus, .legacy-section select:focus {
+  border-color: #fb923c;
+}
+
+#legacy-save-btn {
+  background: #fb923c; border: none; color: #000;
+  cursor: pointer; font-size: 12px; font-weight: 600;
+  padding: 7px 12px; border-radius: 4px; margin-top: 4px;
+  transition: opacity 0.15s;
+}
+#legacy-save-btn:hover { opacity: 0.85; }
+
+#legacy-status-msg {
+  font-size: 11px; color: #4ade80; min-height: 16px; text-align: center;
 }

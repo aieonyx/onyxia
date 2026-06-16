@@ -47,8 +47,54 @@
                placeholder="Enter address" autocomplete="off" />
       </div>
       <button id="vault-btn" title="Sovereign Vault">&#128274;</button>
+      <button id="legacy-btn" title="Digital Legacy" class="legacy-inactive">&#9760;</button>
     </div>
 
+
+    <!-- C10: Digital Legacy Panel -->
+    <div id="legacy-panel" class="hidden">
+      <div id="legacy-header">
+        <span id="legacy-title">&#9760; Digital Legacy</span>
+        <button id="legacy-close">&#10005;</button>
+      </div>
+      <div id="legacy-body">
+        <div class="legacy-section">
+          <label>Inactivity Trigger (days)</label>
+          <input type="number" id="legacy-days" value="180" min="30" max="3650" />
+        </div>
+        <div class="legacy-section">
+          <label>Legacy Holder Name</label>
+          <input type="text" id="legacy-holder-name" placeholder="Full name" />
+        </div>
+        <div class="legacy-section">
+          <label>Legacy Holder Contact</label>
+          <input type="text" id="legacy-holder-contact" placeholder="Email or phone" />
+        </div>
+        <div class="legacy-section">
+          <label>Critical Data (passwords, keys)</label>
+          <select id="legacy-critical-action">
+            <option value="delete">Delete immediately</option>
+            <option value="preserve">Preserve for holder</option>
+          </select>
+        </div>
+        <div class="legacy-section">
+          <label>Personal Data (history, notes)</label>
+          <select id="legacy-personal-action">
+            <option value="transfer">Transfer to holder</option>
+            <option value="delete">Delete</option>
+          </select>
+        </div>
+        <div class="legacy-section">
+          <label>Noise Data (cache, analytics)</label>
+          <select id="legacy-noise-action">
+            <option value="purge">Purge immediately</option>
+            <option value="preserve">Preserve</option>
+          </select>
+        </div>
+        <button id="legacy-save-btn">Save Testament</button>
+        <div id="legacy-status-msg"></div>
+      </div>
+    </div>
     <!-- Vault Panel -->
     <div id="vault-panel" class="hidden">
       <div id="vault-header">

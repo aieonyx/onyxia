@@ -482,12 +482,13 @@ vaultClose.addEventListener("click", () => {
 });
 
 document.addEventListener("click", (e) => {
-  if (!vaultPanel.contains(e.target as Node) && e.target !== vaultBtn) {
+  const t = e.target as Node;
+  if (!vaultPanel.contains(t) && e.target !== vaultBtn) {
     vaultPanel.classList.add("hidden");
   }
+// Vault unlock (C9-UI: master password prompt)
 });
 
-// Vault unlock (C9-UI: master password prompt)
 vaultUnlockBtn.addEventListener("click", () => {
   const masterPwd = prompt("Enter master password:");
   // C9-UI: accept any non-empty password for UI prototype
@@ -564,3 +565,121 @@ listen<string>("title-changed", (event) => {
     saveSessionDebounced();
   }
 });
+
+// ── C10: Digital Legacy ──────────────────────────────────────
+const legacyBtn = document.getElementById("legacy-btn") as HTMLButtonElement;
+const legacyPanel = document.getElementById("legacy-panel") as HTMLDivElement;
+const legacyClose = document.getElementById("legacy-close") as HTMLButtonElement;
+const legacyDays = document.getElementById("legacy-days") as HTMLInputElement;
+const legacyHolderName = document.getElementById("legacy-holder-name") as HTMLInputElement;
+const legacyHolderContact = document.getElementById("legacy-holder-contact") as HTMLInputElement;
+const legacyCriticalAction = document.getElementById("legacy-critical-action") as HTMLSelectElement;
+const legacyPersonalAction = document.getElementById("legacy-personal-action") as HTMLSelectElement;
+const legacyNoiseAction = document.getElementById("legacy-noise-action") as HTMLSelectElement;
+const legacySaveBtn = document.getElementById("legacy-save-btn") as HTMLButtonElement;
+const legacyStatusMsg = document.getElementById("legacy-status-msg") as HTMLDivElement;
+
+// C10: Navigate to awp://legacy sovereign page
+legacyBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  navigate("awp://legacy");
+});
+
+legacyClose.addEventListener("click", () => legacyPanel.classList.add("hidden"));
+
+document.addEventListener("click", (e) => {
+  const target = e.target as Node;
+  if (!legacyPanel.contains(target) && e.target !== legacyBtn) {
+    legacyPanel.classList.add("hidden");
+  }
+});
+
+// Load existing testament
+async function loadLegacyData(): Promise<void> {
+  try {
+    const testament = await invoke<{
+      inactivity_days: number;
+      legacy_holder_name: string;
+      legacy_holder_contact: string;
+      critical_action: string;
+      personal_action: string;
+      noise_action: string;
+    } | null>("load_testament");
+
+    if (testament) {
+      legacyDays.value = String(testament.inactivity_days);
+      legacyHolderName.value = testament.legacy_holder_name;
+      legacyHolderContact.value = testament.legacy_holder_contact;
+      legacyCriticalAction.value = testament.critical_action;
+      legacyPersonalAction.value = testament.personal_action;
+      legacyNoiseAction.value = testament.noise_action;
+      legacyStatusMsg.textContent = "Testament loaded from vault";
+      legacyStatusMsg.style.color = "#4ade80";
+    }
+  } catch (err) {
+    legacyStatusMsg.textContent = "EdisonDB offline";
+    legacyStatusMsg.style.color = "#f87171";
+  }
+}
+
+// Save testament
+legacySaveBtn.addEventListener("click", async () => {
+  const testament = {
+    inactivity_days: parseInt(legacyDays.value) || 180,
+    legacy_holder_name: legacyHolderName.value.trim(),
+    legacy_holder_contact: legacyHolderContact.value.trim(),
+    critical_action: legacyCriticalAction.value,
+    personal_action: legacyPersonalAction.value,
+    noise_action: legacyNoiseAction.value,
+    created_at: Math.floor(Date.now() / 1000),
+  };
+
+  try {
+    await invoke("save_testament", { testament });
+    legacyStatusMsg.textContent = "Testament saved to sovereign vault";
+    legacyStatusMsg.style.color = "#4ade80";
+    legacyBtn.className = "legacy-active";
+    updateLegacyStatus();
+  } catch (err) {
+    legacyStatusMsg.textContent = "Save failed: " + String(err).slice(0, 40);
+    legacyStatusMsg.style.color = "#f87171";
+  }
+});
+
+// Update legacy status indicator
+async function updateLegacyStatus(): Promise<void> {
+  try {
+    const status = await invoke<{
+      status: string;
+      days_inactive: number;
+      testament_active: boolean;
+      holder: string;
+    }>("get_legacy_status");
+
+    legacyBtn.title = "Digital Legacy — " + status.status;
+
+    if (status.status === "active") {
+      legacyBtn.className = "legacy-active";
+    } else if (status.status === "warning") {
+      legacyBtn.className = "legacy-warning";
+    } else if (status.status === "triggered") {
+      legacyBtn.className = "legacy-triggered";
+    } else {
+      legacyBtn.className = "legacy-inactive";
+    }
+  } catch (_) {
+    legacyBtn.className = "legacy-inactive";
+  }
+}
+
+// Ping heartbeat on startup and update status
+async function initLegacy(): Promise<void> {
+  try {
+    await invoke("ping_heartbeat");
+    await updateLegacyStatus();
+  } catch (_) {
+    // EdisonDB offline — graceful degradation
+  }
+}
+
+initLegacy();
