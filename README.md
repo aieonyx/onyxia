@@ -57,14 +57,14 @@ Onyxia is built with:
 | C3 | AXON-Client header emission | ✅ Complete |
 | C4 | `awp://` protocol handler | ✅ Complete |
 | C5 | ARPi status bar, protocol switcher, window controls, tab URL restore | ✅ Complete |
-| C6 | Trust indicators (✶, 🔒, ⚠️), tab reorder | 🔄 In progress |
-| C7 | AWP Sovereign Threat Sensor | Planned |
-| C8 | EdisonDB embedded — session persistence, credential vault | Planned |
-| C9 | Password manager UI | Planned |
-| C10 | AWIT token manager | Planned |
-| C11 | Digital Legacy integration | Planned |
-| C12 | USB Master Key binding + Servo engine evaluation | Planned |
-| C13 | v1.0 release — Linux | Planned |
+| C6 | Trust indicators (✶, 🔒, ⚠️), tab reorder | ✅ Complete |
+| C7 | Sovereign Threat Sensor — tracker detection, SSV typosquat, crypto allowlist | ✅ Complete |
+| C8 | EdisonDB session persistence — tab save/restore | ✅ Complete |
+| C9 | Password manager UI — vault panel, save banner, master password prompt | ✅ Complete |
+| C10 | Digital Legacy integration | 🔄 In progress |
+| C11 | Aegis Sovereign Threat Intel UI | Planned |
+| C12 | Servo engine swap + v1.0 Linux release | Planned |
+| C13 | AXON Integration — AWP verifier in AXON, FFI link into Onyxia | Planned |
 
 ---
 

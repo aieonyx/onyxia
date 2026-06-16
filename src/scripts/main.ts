@@ -553,3 +553,14 @@ listen<string>("url-changed", (event) => {
     }
   }
 });
+
+// TECH-DEBT-003 fix: update tab title from page title
+listen<string>("title-changed", (event) => {
+  const title = event.payload;
+  const activeTab = tabs.find(t => t.id === activeTabId);
+  if (activeTab && title) {
+    activeTab.title = title;
+    renderTabs();
+    saveSessionDebounced();
+  }
+});

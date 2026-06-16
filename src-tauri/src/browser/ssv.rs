@@ -65,7 +65,7 @@ fn normalize_domain(domain: &str) -> String {
 
 fn as_crypto_keywords(host: &str) -> bool {
     let h = host.to_lowercase();
-    CRYPTO_KEYWORDS.iter().any(|&kW| h.contains(kW))
+    CRYPTO_KEYWORDS.iter().any(|&kw| h.contains(kw))
 }
 
 #[derive(Debug, Clone, serde::Serialize)]

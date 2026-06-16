@@ -116,6 +116,16 @@ pub fn run() {
                             }
                         }
                     });
+                    let app3t = app_handle.clone();
+                    inner.connect_title_notify(move |view| {
+                        if let Some(title) = view.title() {
+                            let t = title.to_string();
+                            let empty = t.is_empty();
+                            if !empty {
+                                let _ = app3t.emit("title-changed", t);
+                            }
+                        }
+                    });
                 })?;
             }
 
