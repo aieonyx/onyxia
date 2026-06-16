@@ -683,3 +683,19 @@ async function initLegacy(): Promise<void> {
 }
 
 initLegacy();
+
+// C11: Aegis Threat Intel
+const aegisBtn = document.getElementById("aegis-btn") as HTMLButtonElement;
+let sessionThreatCount = 0;
+
+aegisBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  navigate("awp://aegis");
+});
+
+// Track threats for Aegis button indicator
+listen<{kind: string; domain: string; url: string}>("threat-detected", () => {
+  sessionThreatCount++;
+  aegisBtn.className = "threat-active";
+  aegisBtn.title = "Aegis Threat Intel — " + sessionThreatCount + " threat(s)";
+});
