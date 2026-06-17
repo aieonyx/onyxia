@@ -212,7 +212,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 2px;
-  margin-left: 4px;
+  margin-left: auto;
   flex-shrink: 0;
 }
 #window-controls button {

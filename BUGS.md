@@ -3,7 +3,7 @@
 Copyright (c) 2026 Edison Lepiten / AIEONYX
 SPDX-License-Identifier: Apache-2.0
 
-Last updated: C9 (commit c30d17f)
+Last updated: C12 / v1.0.0 (commit pending)
 
 ---
 
@@ -106,3 +106,16 @@ Last updated: C9 (commit c30d17f)
 | KNOWN-LIMITATION-002 | WebKitGTK JS compat — Vimeo/heavy SPAs | C12-SERVO |
 | KNOWN-LIMITATION-003 | Tab state lost on reorder | Future |
 | KNOWN-LIMITATION-004 | AWP mesh routing placeholder only | C11+ |
+
+---
+
+## TRACK-C-SERVO — Deferred to v1.1
+
+Servo engine evaluation via tauri-runtime-verso deferred from v1.0.
+Reasons:
+1. tauri-runtime-verso pins older Tauri versions — risks breaking C1-C11 features
+2. multi-webview architecture (window.add_child) is WRY-specific, not yet supported in Verso
+3. AIEONYX sovereign renderer (AXON Display Protocol) is the correct long-term path
+
+v1.0 ships with WebKitGTK — open source, auditable, sovereign enough for initial release.
+KNOWN-BUG-002 and KNOWN-BUG-003 deferred to v1.1 AXON Display Protocol track.

@@ -1,6 +1,6 @@
 {
   "productName": "Onyxia",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "identifier": "com.aieonyx.onyxia",
   "build": {
     "frontendDist": "../dist",
@@ -25,7 +25,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": [
+      "deb",
+      "appimage"
+    ],
     "icon": [
       "icons/icon.png"
     ],
