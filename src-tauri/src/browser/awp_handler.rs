@@ -1,26 +1,67 @@
 // Copyright (c) 2026 Edison Lepiten / AIEONYX
 // SPDX-License-Identifier: Apache-2.0
 //
-// C4: awp:// protocol handler.
-// Intercepts all awp:// requests and returns sovereign responses.
-// Real AWP mesh routing: future milestone.
+// C13: AWP protocol handler + AXON FFI bridge.
+// All awp:// requests are intercepted and served natively in Rust.
+// ARPi layer states are driven by axon_awp_ffi — real FFI call, stub verifier.
+// AXON-STUB-001: replace stub with P45 mesh verifier via --features axon-live.
 // INVARIANT: awp:// never falls through to legacy web.
 
+use axon_awp_ffi::{verify_url, result_status, AxonVerifyResult};
 use tauri::http::{Request, Response, StatusCode};
+
+/// Run the AXON AWP verifier on a URL and return structured layer states.
+/// Called for every navigation to drive the ARPi bar in the browser chrome.
+pub struct ArpiState {
+    pub l1_schema: bool,
+    pub l2_identity: bool,
+    pub l3_auth: bool,
+    pub l4_scope: bool,
+    pub l5_anomaly: bool,
+    pub verified: bool,
+    pub status: String,
+    pub protocol: &'static str,
+}
+
+impl ArpiState {
+    pub fn from_url(url: &str) -> Self {
+        let r: AxonVerifyResult = verify_url(url);
+        let protocol = if url.starts_with("awp://") {
+            "AWP"
+        } else if url.starts_with("https://") {
+            "HTTPS"
+        } else {
+            "HTTP"
+        };
+        Self {
+            l1_schema: r.l1_schema,
+            l2_identity: r.l2_identity,
+            l3_auth: r.l3_auth,
+            l4_scope: r.l4_scope,
+            l5_anomaly: r.l5_anomaly,
+            verified: r.verified,
+            status: result_status(&r).to_string(),
+            protocol,
+        }
+    }
+}
 
 pub fn handle_awp_request(request: Request<Vec<u8>>) -> Response<Vec<u8>> {
     let url = request.uri().to_string();
-    // Route sovereign AWP pages
+
+    // Run AXON verifier — drives ARPi bar layer states
+    // AXON-STUB-001 active: deterministic protocol-aware stub
+    let arpi = ArpiState::from_url(&url);
+
     if url.starts_with("awp://legacy") {
-        return serve_legacy_page();
+        return serve_legacy_page(&arpi);
     }
 
     if url.starts_with("awp://aegis") {
-        return serve_aegis_page();
+        return serve_aegis_page(&arpi);
     }
 
     let host = extract_awp_host(&url);
-
     let html = format!(
         r#"<!DOCTYPE html>
 <html lang="en">
@@ -31,43 +72,41 @@ pub fn handle_awp_request(request: Request<Vec<u8>>) -> Response<Vec<u8>> {
   <style>
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{
-      background: #0a0a0f;
-      color: #e8e8f0;
+      background: #0a0a0f; color: #e8e8f0;
       font-family: "SF Pro Display", "Segoe UI", system-ui, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      flex-direction: column;
-      gap: 24px;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; flex-direction: column; gap: 24px;
     }}
     .star {{ font-size: 48px; color: #00E5FF; }}
-    h1 {{ font-size: 24px; font-weight: 600; color: #e8e8f0; }}
+    h1 {{ font-size: 24px; font-weight: 600; }}
     .host {{ font-size: 14px; color: #7a7a9a; font-family: monospace; }}
-    .status {{
-      font-size: 13px;
-      color: #7B2FBE;
-      border: 1px solid #2a2a3a;
-      padding: 8px 16px;
-      border-radius: 6px;
-    }}
+    .verified {{ font-size: 12px; color: #4ade80; border: 1px solid #2a2a3a; padding: 6px 14px; border-radius: 6px; }}
+    .status {{ font-size: 11px; color: #5a5a7a; margin-top: 4px; }}
   </style>
 </head>
 <body>
   <div class="star">✶</div>
   <h1>Sovereign Node</h1>
   <div class="host">awp://{host}</div>
-  <div class="status">AWP mesh routing — coming in a future release</div>
+  <div class="verified">AXON Verified — {l1} {l2} {l3} {l4} {l5}</div>
+  <div class="status">{status}</div>
 </body>
 </html>"#,
-        host = host
+        host = host,
+        l1 = if arpi.l1_schema { "L1✓" } else { "L1✗" },
+        l2 = if arpi.l2_identity { "L2✓" } else { "L2✗" },
+        l3 = if arpi.l3_auth { "L3✓" } else { "L3✗" },
+        l4 = if arpi.l4_scope { "L4✓" } else { "L4✗" },
+        l5 = if arpi.l5_anomaly { "L5✓" } else { "L5✗" },
+        status = arpi.status,
     );
 
     Response::builder()
         .status(StatusCode::OK)
         .header("Content-Type", "text/html; charset=utf-8")
-        .header("AXON-Client", "onyxia/0.1.0 (sovereign; linux)")
-        .header("X-AWP-Handler", "onyxia-c4")
+        .header("AXON-Client", "onyxia/1.0.0 (sovereign; linux)")
+        .header("X-AWP-Handler", "onyxia-c13")
+        .header("X-AXON-Verified", if arpi.verified { "true" } else { "false" })
         .body(html.into_bytes())
         .unwrap()
 }
@@ -80,7 +119,7 @@ fn extract_awp_host(url: &str) -> String {
         .to_string()
 }
 
-fn serve_legacy_page() -> tauri::http::Response<Vec<u8>> {
+fn serve_legacy_page(_arpi: &ArpiState) -> tauri::http::Response<Vec<u8>> {
     let html = r#"<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -255,7 +294,7 @@ fn serve_legacy_page() -> tauri::http::Response<Vec<u8>> {
         .unwrap()
 }
 
-fn serve_aegis_page() -> tauri::http::Response<Vec<u8>> {
+fn serve_aegis_page(_arpi: &ArpiState) -> tauri::http::Response<Vec<u8>> {
     let html = r#"<!DOCTYPE html>
 <html lang="en">
 <head>
