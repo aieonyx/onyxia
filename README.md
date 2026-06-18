@@ -83,7 +83,7 @@ Onyxia is built with a strict trust boundary: **the Rust backend computes all se
 - **Rust** — all security-critical logic: vault, session, identity, protocol handling, threat detection
 - **TypeScript** — browser chrome UI only; no access to sensitive state
 - **[EdisonDB](https://github.com/aieonyx/edisondb)** — sovereign embedded database for sessions, credentials, and legacy testament
-- **[AXON](https://github.com/aieonyx/axon)** — sovereign systems language; AWP verifier FFI integration in C13
+- **[AXON](https://github.com/aieonyx/axon)** — sovereign systems language; AWP verifier FFI bridge live (C13)
 
 ### Security model
 
@@ -99,7 +99,7 @@ Onyxia is built with a strict trust boundary: **the Rust backend computes all se
 |----------|--------|-------------|
 | `https://` | Live | Standard TLS, legacy connection mode |
 | `awp://` | Live | AXON Web Protocol — sovereign internal pages |
-| AWP mesh routing | Planned C13+ | Peer-to-peer sovereign mesh via AXON verifier |
+| AWP mesh routing | Planned C16+ | Peer-to-peer sovereign mesh via AXON verifier |
 
 ---
 
@@ -147,9 +147,10 @@ Tabs and navigation state are saved to EdisonDB and restored on next launch. No 
 | C10 | Digital Legacy — testament, heartbeat, EdisonDB integration | Complete |
 | C11 | Aegis Sovereign Threat Intel UI (`awp://aegis`) | Complete |
 | C12 | Production build — v1.0.0 `.deb` + `.AppImage`, binary fixes | Complete |
-| C13 | AXON Integration — AWP verifier FFI bridge | In progress |
-| C14 | AIEONYX CA pre-installation | Planned |
-| C15 | Sovereign renderer (AXON Display Protocol) | Planned v1.1 |
+| C13 | AXON Integration — AWP verifier FFI bridge (`axon_awp_ffi` crate) | Complete |
+| C14 | AIEONYX CA pre-installation (Ed25519, embedded) | Complete |
+| C15 | NLNet exhibit — arXiv paper, evidence package | Complete |
+| C16 | Sovereign renderer (AXON Display Protocol) | Planned v1.1 |
 
 ---
 
