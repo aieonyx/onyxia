@@ -133,6 +133,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
+name = "axon_awp_ffi"
+version = "0.1.0"
+
+[[package]]
 name = "base64"
 version = "0.21.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2287,6 +2291,7 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 name = "onyxia"
 version = "1.0.0"
 dependencies = [
+ "axon_awp_ffi",
  "env_logger",
  "gtk",
  "log",

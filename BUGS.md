@@ -63,6 +63,16 @@ Last updated: C12 / v1.0.0 (commit pending)
 
 ## OPEN TECHNICAL DEBT
 
+### AUDIT-002 — AIEONYX CA TLS Database (WebKitGTK API limitation)
+- **Status:** Open — LOW RISK (C14 partial)
+- **Finding:** WebKitGTK `set_tls_database()` API requires `gio::TlsFileDatabase`
+  which is not yet exposed in the `webkit2gtk` Rust bindings at v2.0
+- **Impact:** AIEONYX CA PEM is embedded in binary (C14 complete); TLS DB
+  registration deferred until webkit2gtk bindings expose the API
+- **Workaround:** CA cert written to `~/.config/onyxia/aieonyx_ca.pem` at
+  launch — users can import manually into system trust store
+- **Fix target:** v1.1 — upgrade webkit2gtk bindings or use GLib FFI directly
+
 ### AUDIT-001 — EdisonDB Critical Tier Unencrypted
 - **Status:** Open — HIGH RISK
 - **Finding:** Critical tier stores data in plaintext

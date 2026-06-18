@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 mod browser;
+mod ca;
 mod commands;
 
 use browser::arpi_state::PageState;
@@ -81,6 +82,14 @@ pub fn run() {
                 LogicalPosition::new(0.0, CHROME_H),
                 LogicalSize::new(WIN_W, WIN_H - CHROME_H),
             )?;
+
+            // C14: install AIEONYX Root CA into WebKitGTK TLS database
+            #[cfg(target_os = "linux")]
+            {
+                if let Err(e) = ca::install_aieonyx_ca(&content) {
+                    log::warn!("C14: CA installation warning: {}", e);
+                }
+            }
 
             // GtkBox surgery: repack children with correct expand flags
             #[cfg(target_os = "linux")]
