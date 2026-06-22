@@ -71,19 +71,32 @@ Onyxia is built with a strict trust boundary: **the Rust backend computes all se
 |  Vault | Session | Legacy | Aegis       |
 +----------------+------------------------+
                  |
-+----------------v------------------------+
-|           EdisonDB  (port 7777)         |  <- Sovereign local database
-|  Sessions | Legacy Testament | Threat   |
-+-----------------------------------------+
+       +---------+----------+
+       |                    |
++------v-------+    +-------v---------+
+| axon_awp     |    | EdisonDB        |
+| AWP protocol |    | Sovereign DB    |
+| 11 categories|    | Sessions/Vault  |
+| 249 regions  |    | Legacy/Aegis    |
++--------------+    +-----------------+
+       |
++------v-------+
+| AXON FFI     |
+| AWP verifier |
+| Ed25519 CA   |
++--------------+
 ```
+
+Trust boundary invariant: all security state computed in Rust. Frontend renders only.
 
 ### Stack
 
 - **[Tauri v2](https://tauri.app)** — Rust backend, native window, WebKitGTK webview on Linux
 - **Rust** — all security-critical logic: vault, session, identity, protocol handling, threat detection
 - **TypeScript** — browser chrome UI only; no access to sensitive state
+- **[axon_awp](https://github.com/aieonyx/AXON)** — sovereign AWP protocol (11 categories, ISO 3166-1 regions, FFI exports)
 - **[EdisonDB](https://github.com/aieonyx/edisondb)** — sovereign embedded database for sessions, credentials, and legacy testament
-- **[AXON](https://github.com/aieonyx/axon)** — sovereign systems language; AWP verifier FFI bridge live (C13)
+- **[AXON](https://github.com/aieonyx/AXON)** — sovereign systems language; AWP verifier FFI bridge, Ed25519 Root CA
 
 ### Security model
 
@@ -91,7 +104,8 @@ Onyxia is built with a strict trust boundary: **the Rust backend computes all se
 - Credentials never cross the IPC boundary in plaintext.
 - The URL bar trust indicator (`*` sovereign / `lock` HTTPS / `!` HTTP) is set by the backend — never by page logic.
 - Vault is locked by default. No sensitive data is served in locked state.
-- All sovereign pages (`awp://`) are handled natively in Rust; no external network request is made.
+- All sovereign pages (`awp://`) are handled natively in Rust via axon_awp; no external network request is made.
+- AIEONYX Root CA embedded at compile time via `include_str!()`.
 
 ### Protocol support
 
@@ -99,7 +113,8 @@ Onyxia is built with a strict trust boundary: **the Rust backend computes all se
 |----------|--------|-------------|
 | `https://` | Live | Standard TLS, legacy connection mode |
 | `awp://` | Live | AXON Web Protocol — sovereign internal pages |
-| AWP mesh routing | Planned C16+ | Peer-to-peer sovereign mesh via AXON verifier |
+| AWP category routing | Live (axon_awp P66) | 11 categories, regional routing, global fallback |
+| AWP mesh routing | Planned v1.1 | Peer-to-peer sovereign mesh |
 
 ---
 
@@ -107,13 +122,13 @@ Onyxia is built with a strict trust boundary: **the Rust backend computes all se
 
 ### ARPi Verification Bar
 Every connection is evaluated against the five-layer ARPi stack:
-`L1 Schema` -> `L2 Identity` -> `L3 Auth` -> `L4 Scope` -> `L5 Anomaly`
+`L1 Schema` → `L2 Identity` → `L3 Auth` → `L4 Scope` → `L5 Anomaly`
 
 Legacy HTTPS connections show a legacy indicator. AWP connections show live layer verification status.
 
 ### Sovereign Threat Sensor (SSV / STS)
-- Tracker detection against a curated blocklist
-- SSV typosquat detection — flags domain lookalikes
+- Tracker detection against a curated blocklist (29 domains)
+- SSV typosquat detection — Levenshtein distance, flags domain lookalikes
 - Mixed content detection
 - Crypto-drainer domain allowlist
 
@@ -135,22 +150,23 @@ Tabs and navigation state are saved to EdisonDB and restored on next launch. No 
 
 | Milestone | Description | Status |
 |-----------|-------------|--------|
-| C1 | Tauri v2 shell — browser chrome, multi-tab, navigation | Complete |
-| C2 | AWP protocol handler (`awp://` sovereign pages) | Complete |
-| C3 | AXON-Client header emission | Complete |
-| C4 | ARPi status bar, protocol switcher, tab URL restore | Complete |
-| C5 | Trust indicators, window controls (`decorations=false`) | Complete |
-| C6 | Session persistence — EdisonDB tab save/restore | Complete |
-| C7 | Sovereign Threat Sensor — tracker / SSV / STS / mixed content | Complete |
-| C8 | STS content blocking integration | Complete |
-| C9 | Password manager — vault panel, save banner, master password | Complete |
-| C10 | Digital Legacy — testament, heartbeat, EdisonDB integration | Complete |
-| C11 | Aegis Sovereign Threat Intel UI (`awp://aegis`) | Complete |
-| C12 | Production build — v1.0.0 `.deb` + `.AppImage`, binary fixes | Complete |
-| C13 | AXON Integration — AWP verifier FFI bridge (`axon_awp_ffi` crate) | Complete |
-| C14 | AIEONYX CA pre-installation (Ed25519, embedded) | Complete |
-| C15 | NLNet exhibit — arXiv paper, evidence package | Complete |
-| C16 | Sovereign renderer (AXON Display Protocol) | Planned v1.1 |
+| C1 | Tauri v2 shell — browser chrome, multi-tab, navigation | ✅ Complete |
+| C2 | AWP protocol handler (`awp://` sovereign pages) | ✅ Complete |
+| C3 | AXON-Client header emission | ✅ Complete |
+| C4 | ARPi status bar, protocol switcher, tab URL restore | ✅ Complete |
+| C5 | Trust indicators, window controls (`decorations=false`) | ✅ Complete |
+| C6 | Session persistence — EdisonDB tab save/restore | ✅ Complete |
+| C7 | Sovereign Threat Sensor — tracker / SSV / STS / mixed content | ✅ Complete |
+| C8 | STS content blocking integration | ✅ Complete |
+| C9 | Password manager — vault panel, save banner, master password | ✅ Complete |
+| C10 | Digital Legacy — testament, heartbeat, EdisonDB integration | ✅ Complete |
+| C11 | Aegis Sovereign Threat Intel UI (`awp://aegis`) | ✅ Complete |
+| C12 | Production build — v1.0.0 `.deb` + `.AppImage`, binary fixes | ✅ Complete |
+| C13 | AXON Integration — AWP verifier FFI bridge (`axon_awp_ffi` crate) | ✅ Complete |
+| C14 | AIEONYX CA pre-installation (Ed25519, embedded) | ✅ Complete |
+| C15 | NLNet exhibit — arXiv paper, evidence package | ✅ Complete |
+| C16 | AWP mesh routing (axon_awp P66 protocol core ready) | 🔵 Planned v1.1 |
+| C17 | Sovereign renderer engine swap (TRACK-C-SERVO) | 🔵 Planned v1.1 |
 
 ---
 
@@ -203,23 +219,31 @@ cargo tauri dev
 
 | Platform | Status |
 |----------|--------|
-| Linux x86_64 (Ubuntu 22.04+, Pop!_OS, Debian) | v1.0.0 current |
-| macOS | Planned v1.1 |
-| Windows | Planned v1.1 |
+| Linux x86_64 (Ubuntu 22.04+, Pop!_OS, Debian) | ✅ v1.0.0 current |
+| macOS | 🔵 Planned v1.1 |
+| Windows | 🔵 Planned v1.1 |
 
 ---
 
-## Part of the AIEONYX platform
+## Part of the AIEONYX sovereign stack
 
-| Component | Role | Repository |
-|-----------|------|------------|
-| **AXON** | Sovereign systems language and compiler | [github.com/aieonyx/axon](https://github.com/aieonyx/axon) |
-| **EdisonDB** | Sovereign embedded database | [github.com/aieonyx/edisondb](https://github.com/aieonyx/edisondb) |
-| **Onyxia** | Sovereign browser | This repository |
-| **BASTION OS** | Sovereign node OS (seL4 + Rust) | Planned |
-| **aixOs** | Sovereign desktop OS | Planned |
+| Component | Role | Status |
+|-----------|------|--------|
+| **[AXON](https://github.com/aieonyx/AXON)** | Sovereign compiler, AWP protocol, LSP, package registry | ✅ 1,606+ tests |
+| **[EdisonDB](https://github.com/aieonyx/edisondb)** | Sovereign database — WAL, MVCC, RBAC, compliance | ✅ Phase 3 complete |
+| **[Onyxia](https://github.com/aieonyx/onyxia)** | Sovereign browser | ✅ v1.0.0 |
+| **[BASTION](https://github.com/aieonyx/bastion)** | Sovereign node OS bootstrap — Ed25519 verifier, seL4 | ✅ v0.2.0 |
+| **aixOs** | Sovereign desktop OS | 🔵 Planned |
 
-The S4+i framework governs all design decisions: **Security -> Sovereignty -> Simplicity -> Speed -> +Intelligence**.
+The S4+i framework governs all design decisions: **Security → Sovereignty → Simplicity → Speed → +Intelligence**.
+
+---
+
+## NLNet NGI Zero
+
+Onyxia is submitted to **NLNet NGI Zero Commons Fund / NGI Fediversity** (deadline: August 1, 2026).
+
+Evidence package: [EXHIBIT.md](./EXHIBIT.md) · [STACK_SUMMARY.md](./STACK_SUMMARY.md)
 
 ---
 
