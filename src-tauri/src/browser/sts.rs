@@ -68,6 +68,17 @@ pub fn is_tracker(url: &str) -> Option<ThreatEvent> {
 }
 
 /// Check for mixed content (HTTP resource on HTTPS page) via HERALD.
+///
+/// HE-15c gap: not yet called from anywhere. The old WebKitGTK
+/// connect_resource_load_started hook called this per sub-resource
+/// (images, scripts, stylesheets) as the browser loaded them — but
+/// HANIEL's PageLoader::load_full() currently does a single top-level
+/// HERALD::fetch() for the whole page and doesn't yet walk or fetch a
+/// page's individual sub-resources separately. There is nothing real to
+/// call this with until that exists. Kept (not deleted) since the logic
+/// is correct and this is the natural place for it to be wired in once
+/// HANIEL gains sub-resource fetching.
+#[allow(dead_code)]
 pub fn is_mixed_content(page_url: &str, resource_url: &str) -> Option<ThreatEvent> {
     let reason = Sts::check_mixed_content(page_url, resource_url)?;
     Some(ThreatEvent {
