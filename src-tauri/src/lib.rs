@@ -7,6 +7,7 @@ mod commands;
 
 use browser::arpi_state::PageState;
 use browser::awp_handler::handle_awp_request;
+use browser::haniel_handler::{extract_target_url, handle_haniel_request, HanielState};
 use browser::header_injection::{axon_client_value, AXON_CLIENT_HEADER, should_inject_header};
 use browser::sts::{is_tracker, is_mixed_content};
 use browser::tab_manager::TabManager;
@@ -27,13 +28,21 @@ pub fn run() {
     let page_state: CurrentPageState = Arc::new(Mutex::new(PageState::blank()));
     let header_value = axon_client_value();
 
+    // HE-15b: HANIEL render pipeline state — one PageLoader shared across
+    // all haniel:// requests, sized to the content webview's viewport.
+    let haniel_state = Arc::new(HanielState::new(WIN_W as u32, (WIN_H - CHROME_H) as u32));
+
     log::info!("AXON-Client header: {}", header_value);
 
     tauri::Builder::default()
         .manage(tab_manager)
         .manage(page_state)
+        .manage(haniel_state.clone())
         .register_uri_scheme_protocol("awp", |_app, request| {
             handle_awp_request(request)
+        })
+        .register_uri_scheme_protocol("haniel", move |_app, request| {
+            handle_haniel_request(&haniel_state, request)
         })
         .invoke_handler(tauri::generate_handler![
             commands::navigation::navigate,
@@ -125,7 +134,15 @@ pub fn run() {
                             let blank = uri_str == "about:blank";
                             let empty = uri_str.is_empty();
                             if !blank && !empty {
-                                let _ = app2.emit("url-changed", uri_str);
+                                // HE-15b: the webview's internal URI is now the
+                                // haniel://render wrapper, not the real page —
+                                // unwrap it before telling the address bar.
+                                let display_url = if uri_str.starts_with("haniel://render") {
+                                    extract_target_url(&uri_str).unwrap_or(uri_str)
+                                } else {
+                                    uri_str
+                                };
+                                let _ = app2.emit("url-changed", display_url);
                             }
                         }
                     });

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Edison Lepiten / AIEONYX
 // SPDX-License-Identifier: Apache-2.0
 
+use crate::browser::haniel_handler::to_render_uri;
 use crate::browser::tab_manager::{Tab, TabManager};
 use crate::browser::ssv::verify_site;
 use std::sync::{Arc, Mutex};
@@ -39,8 +40,9 @@ pub async fn navigate(
     }
 
     if let Some(content) = app.get_webview("content") {
+        let render_uri = to_render_uri(&url);
         content
-            .navigate(url.parse().map_err(|e: url::ParseError| e.to_string())?)
+            .navigate(render_uri.parse().map_err(|e: url::ParseError| e.to_string())?)
             .map_err(|e: tauri::Error| e.to_string())?;
     } else {
         return Err("Content webview not found".to_string());
@@ -105,7 +107,7 @@ pub async fn switch_tab(id: u32, tab_state: State<'_, TabState>, app: AppHandle)
             let target = if url == "about:blank" || url.is_empty() {
                 "about:blank".to_string()
             } else {
-                url
+                to_render_uri(&url)
             };
             let _ = content.navigate(target.parse().unwrap());
         }

@@ -42,6 +42,8 @@ impl ArpiStatus {
         }
     }
 
+    /// Reserved for future trust-bar UI — not yet wired to a caller.
+    #[allow(dead_code)]
     pub fn sovereign() -> Self {
         ArpiStatus {
             schema:      LayerStatus::Verified,

@@ -20,6 +20,8 @@ pub struct ArpiState {
     pub l5_anomaly: bool,
     pub verified: bool,
     pub status: String,
+    /// Reserved for future ARPi bar UI — not yet read by a caller.
+    #[allow(dead_code)]
     pub protocol: &'static str,
 }
 
