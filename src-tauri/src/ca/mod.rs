@@ -3,8 +3,16 @@
 //
 // C14: AIEONYX CA pre-installation.
 // The AIEONYX Root CA certificate is embedded in the binary at compile time.
-// On Linux, it is registered with WebKitGTK's TLS database so that
-// AIEONYX-signed sites and awp:// sovereign pages are trusted natively.
+//
+// HE-15c note: this module's doc comments previously described registering
+// the CA with "WebKitGTK's TLS database" — that never actually happened.
+// webkit2gtk's Rust bindings never exposed `set_tls_database()` (AUDIT-002),
+// so the real behavior was always the fallback below: write the PEM to the
+// user config dir for manual import. The unused `&tauri::Webview` parameter
+// (a leftover from the originally-planned WebKitGTK call) has been dropped.
+// Actual TLS/CA trust resolution for sovereign content lives in HANIEL
+// HERALD's ArpiResolver (see haniel_handler::serve_frame, which surfaces
+// the resolved ArpiTier as a response header), not here.
 //
 // CA details:
 //   Subject: CN=AIEONYX Root CA, O=AIEONYX, OU=Sovereign Infrastructure
@@ -22,16 +30,9 @@ pub const AIEONYX_CA_PEM: &str = include_str!("aieonyx_ca.pem");
 pub const AIEONYX_CA_FINGERPRINT_SHA256: &str =
     "64:6D:99:AD:46:C2:50:A8:83:A1:95:C1:36:25:0B:1E:47:EC:5F:BE:CB:90:A2:C4:C0:28:DC:8F:8C:B7:8A:89";
 
-/// Register the AIEONYX Root CA with WebKitGTK's TLS database.
-/// Called once during app setup on Linux.
-/// On success, WebKitGTK will trust AIEONYX-signed TLS certificates natively.
-///
-/// AUDIT-002: webkit2gtk Rust bindings v2.0 do not yet expose
-/// `set_tls_database()` directly. We write the CA PEM to the user config
-/// dir as a fallback so it can be imported into the system trust store.
-#[cfg(target_os = "linux")]
-pub fn install_aieonyx_ca(webview: &tauri::Webview) -> Result<(), String> {
-    // Write CA PEM to user config dir for manual import
+/// Write the AIEONYX Root CA to the user config dir for manual import
+/// into the system trust store. Called once during app setup.
+pub fn install_aieonyx_ca() -> Result<(), String> {
     let config_dir = dirs_next::config_dir()
         .unwrap_or_else(|| std::path::PathBuf::from("/tmp"))
         .join("onyxia");
@@ -43,19 +44,9 @@ pub fn install_aieonyx_ca(webview: &tauri::Webview) -> Result<(), String> {
         log::info!("C14: AIEONYX Root CA written to {}", ca_path.display());
     }
 
-    // AUDIT-002: TLS DB registration via webkit2gtk bindings pending v1.1
-    // When webkit2gtk exposes set_tls_database(), call it here.
-    let _ = webview;
     log::info!(
         "C14: AIEONYX Root CA embedded. SHA-256: {}",
         AIEONYX_CA_FINGERPRINT_SHA256
     );
-    Ok(())
-}
-
-#[cfg(not(target_os = "linux"))]
-pub fn install_aieonyx_ca(_webview: &tauri::Webview) -> Result<(), String> {
-    // Non-Linux: CA installation deferred to v1.1 platform support
-    log::info!("C14: AIEONYX CA installation skipped on non-Linux platform");
     Ok(())
 }

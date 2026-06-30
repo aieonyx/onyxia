@@ -8,8 +8,7 @@ mod commands;
 use browser::arpi_state::PageState;
 use browser::awp_handler::handle_awp_request;
 use browser::haniel_handler::{extract_target_url, handle_haniel_request, HanielState};
-use browser::header_injection::{axon_client_value, AXON_CLIENT_HEADER, should_inject_header};
-use browser::sts::{is_tracker, is_mixed_content};
+use browser::header_injection::axon_client_value;
 use browser::tab_manager::TabManager;
 use commands::page_state::CurrentPageState;
 use std::sync::{Arc, Mutex};
@@ -30,7 +29,11 @@ pub fn run() {
 
     // HE-15b: HANIEL render pipeline state — one PageLoader shared across
     // all haniel:// requests, sized to the content webview's viewport.
-    let haniel_state = Arc::new(HanielState::new(WIN_W as u32, (WIN_H - CHROME_H) as u32));
+    let haniel_state = Arc::new(HanielState::new(
+        WIN_W as u32,
+        (WIN_H - CHROME_H) as u32,
+        header_value.clone(),
+    ));
 
     log::info!("AXON-Client header: {}", header_value);
 
@@ -41,8 +44,8 @@ pub fn run() {
         .register_uri_scheme_protocol("awp", |_app, request| {
             handle_awp_request(request)
         })
-        .register_uri_scheme_protocol("haniel", move |_app, request| {
-            handle_haniel_request(&haniel_state, request)
+        .register_uri_scheme_protocol("haniel", move |ctx, request| {
+            handle_haniel_request(&haniel_state, ctx.app_handle(), request)
         })
         .invoke_handler(tauri::generate_handler![
             commands::navigation::navigate,
@@ -65,8 +68,6 @@ pub fn run() {
             commands::legacy::get_legacy_status,
         ])
         .setup(move |app| {
-            let header_val = header_value.clone();
-
             let window = WindowBuilder::new(app, "main")
                 .inner_size(WIN_W, WIN_H)
                 .min_inner_size(800.0, 400.0)
@@ -92,12 +93,9 @@ pub fn run() {
                 LogicalSize::new(WIN_W, WIN_H - CHROME_H),
             )?;
 
-            // C14: install AIEONYX Root CA into WebKitGTK TLS database
-            #[cfg(target_os = "linux")]
-            {
-                if let Err(e) = ca::install_aieonyx_ca(&content) {
-                    log::warn!("C14: CA installation warning: {}", e);
-                }
+            // C14: write AIEONYX Root CA to user config dir for trust import
+            if let Err(e) = ca::install_aieonyx_ca() {
+                log::warn!("C14: CA installation warning: {}", e);
             }
 
             // GtkBox surgery: repack children with correct expand flags
@@ -159,45 +157,16 @@ pub fn run() {
                 })?;
             }
 
-            // Header injection
-            #[cfg(target_os = "linux")]
-            {
-                use webkit2gtk::{URIRequestExt, WebResourceExt, WebViewExt};
-                let hv = header_val.clone();
-                let app3 = app.handle().clone();
-                content.with_webview(move |wv| {
-                    let inner = wv.inner();
-                    let h = hv.clone();
-                    let app3 = app3.clone();
-                    inner.connect_resource_load_started(
-                        move |view,
-                              resource: &webkit2gtk::WebResource,
-                              request: &webkit2gtk::URIRequest| {
-                            if let Some(url) = resource.uri() {
-                                let url_str = url.as_str();
-                                // C3: AXON-Client header injection
-                                if should_inject_header(url_str) {
-                                    if let Some(headers) = request.http_headers() {
-                                        headers.append(AXON_CLIENT_HEADER, h.as_str());
-                                    }
-                                }
-                                // C7-A: STS tracker detection
-                                if let Some(threat) = is_tracker(url_str) {
-                                    log::warn!("STS: tracker blocked: {} on {}", threat.domain, url_str);
-                                    let _ = app3.emit("threat-detected", &threat);
-                                }
-                                // C7-A: STS mixed content detection
-                                if let Some(page_url) = view.uri() {
-                                    if let Some(threat) = is_mixed_content(page_url.as_str(), url_str) {
-                                        log::warn!("STS: mixed content: {}", url_str);
-                                        let _ = app3.emit("threat-detected", &threat);
-                                    }
-                                }
-                            }
-                        },
-                    );
-                })?;
-            }
+            // HE-15c: the WebKitGTK resource-load header-injection and
+            // STS threat-detection hook that used to live here has been
+            // removed. After HE-15b, content's own URI is always the
+            // haniel://render or haniel://frame wrapper — this hook's
+            // url.starts_with("https://") / is_tracker() checks never
+            // matched anything real, since they were checking the wrong
+            // URL. That logic now lives in
+            // browser::haniel_handler::serve_frame, which operates on
+            // the actual target URL HERALD fetched, not the internal
+            // render-bridge wrapper.
 
             Ok(())
         })
