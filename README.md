@@ -8,8 +8,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/aieonyx/onyxia/releases/tag/v1.0.0">
-    <img src="https://img.shields.io/badge/release-v1.0.0-00E5FF?style=flat-square" alt="v1.0.0" />
+  <a href="https://github.com/aieonyx/onyxia/releases/tag/v1.1.0">
+    <img src="https://img.shields.io/badge/release-v1.1.0-00E5FF?style=flat-square" alt="v1.1.0" />
   </a>
   <img src="https://img.shields.io/badge/platform-Linux-7B2FBE?style=flat-square" alt="Linux" />
   <img src="https://img.shields.io/badge/license-Apache--2.0-00C853?style=flat-square" alt="Apache 2.0" />
@@ -27,14 +27,14 @@ Onyxia is a desktop web browser for people who choose not to be tracked, profile
 
 ## Download
 
-**Linux — v1.0.0**
+**Linux — v1.1.0**
 
 | Format | Size | Notes |
 |--------|------|-------|
-| [Onyxia_1.0.0_amd64.deb](https://github.com/aieonyx/onyxia/releases/tag/v1.0.0) | 5.1 MB | Debian / Ubuntu / Pop!_OS |
-| [Onyxia_1.0.0_amd64.AppImage](https://github.com/aieonyx/onyxia/releases/tag/v1.0.0) | 79 MB | Any x86_64 Linux distro |
+| [Onyxia_1.1.0_amd64.deb](https://github.com/aieonyx/onyxia/releases/tag/v1.1.0) | ~5 MB | Debian / Ubuntu / Pop!_OS |
+| [Onyxia_1.1.0_amd64.AppImage](https://github.com/aieonyx/onyxia/releases/tag/v1.1.0) | ~78 MB | Any x86_64 Linux distro |
 
-macOS and Windows builds are planned for v1.1.
+macOS and Windows builds are planned for a future release.
 
 ---
 
@@ -61,7 +61,7 @@ Onyxia is built with a strict trust boundary: **the Rust backend computes all se
 
 ```
 +-----------------------------------------+
-|           Onyxia Browser Chrome         |  <- TypeScript / WebKitGTK (160px)
+|           Onyxia Browser Chrome         |  <- TypeScript (160px)
 |  Tabs | Nav | ARPi Bar | Trust | Vault  |
 +----------------+------------------------+
                  | Tauri IPC (Rust commands)
@@ -74,16 +74,20 @@ Onyxia is built with a strict trust boundary: **the Rust backend computes all se
        +---------+----------+
        |                    |
 +------v-------+    +-------v---------+
-| axon_awp     |    | EdisonDB        |
-| AWP protocol |    | Sovereign DB    |
-| 11 categories|    | Sessions/Vault  |
-| 249 regions  |    | Legacy/Aegis    |
-+--------------+    +-----------------+
+|    HANIEL    |    | EdisonDB        |
+|  Sovereign   |    | Sovereign DB    |
+|  Rendering   |    | Sessions/Vault  |
+|  Pipeline    |    | Legacy/Aegis    |
+|  HERALD      |    +-----------------+
+|  PRISM       |
+|  CANVAS      |
++--------------+
        |
 +------v-------+
-| AXON FFI     |
-| AWP verifier |
-| Ed25519 CA   |
+| axon_awp     |
+| AWP protocol |
+| 11 categories|
+| 249 regions  |
 +--------------+
 ```
 
@@ -91,7 +95,8 @@ Trust boundary invariant: all security state computed in Rust. Frontend renders 
 
 ### Stack
 
-- **[Tauri v2](https://tauri.app)** — Rust backend, native window, WebKitGTK webview on Linux
+- **[Tauri v2](https://tauri.app)** — Rust backend, native window, IPC bridge
+- **HANIEL** — sovereign rendering engine (HERALD fetch+threat-gate → PRISM parse+layout → CANVAS rasterize); replaces third-party rendering engine dependency
 - **Rust** — all security-critical logic: vault, session, identity, protocol handling, threat detection
 - **TypeScript** — browser chrome UI only; no access to sensitive state
 - **[axon_awp](https://github.com/aieonyx/AXON)** — sovereign AWP protocol (11 categories, ISO 3166-1 regions, FFI exports)
@@ -111,14 +116,17 @@ Trust boundary invariant: all security state computed in Rust. Frontend renders 
 
 | Protocol | Status | Description |
 |----------|--------|-------------|
-| `https://` | Live | Standard TLS, legacy connection mode |
+| `https://` | Live | Standard TLS, legacy web — rendered by HANIEL pipeline |
 | `awp://` | Live | AXON Web Protocol — sovereign internal pages |
 | AWP category routing | Live (axon_awp P66) | 11 categories, regional routing, global fallback |
-| AWP mesh routing | Planned v1.1 | Peer-to-peer sovereign mesh |
+| AWP mesh routing | Planned | Peer-to-peer sovereign mesh |
 
 ---
 
 ## Features
+
+### HANIEL Sovereign Rendering Engine
+Onyxia v1.1.0 ships with HANIEL — a sovereign rendering pipeline written entirely in Rust. HANIEL owns every stage: fetch, threat-gate, parse, layout, rasterize, encode. No third-party rendering engine dependency.
 
 ### ARPi Verification Bar
 Every connection is evaluated against the five-layer ARPi stack:
@@ -127,10 +135,10 @@ Every connection is evaluated against the five-layer ARPi stack:
 Legacy HTTPS connections show a legacy indicator. AWP connections show live layer verification status.
 
 ### Sovereign Threat Sensor (SSV / STS)
-- Tracker detection against a curated blocklist (29 domains)
-- SSV typosquat detection — Levenshtein distance, flags domain lookalikes
+- Tracker detection — 29 known domains, Levenshtein typosquat detection
+- Crypto-drainer domain blocking
 - Mixed content detection
-- Crypto-drainer domain allowlist
+- All threat decisions made locally; no cloud lookup
 
 ### Aegis Threat Intel (`awp://aegis`)
 Local threat intelligence dashboard. No cloud dependency. Surfaces SSV/STS events, threat patterns, and anomaly scores from the current session.
@@ -161,12 +169,12 @@ Tabs and navigation state are saved to EdisonDB and restored on next launch. No 
 | C9 | Password manager — vault panel, save banner, master password | ✅ Complete |
 | C10 | Digital Legacy — testament, heartbeat, EdisonDB integration | ✅ Complete |
 | C11 | Aegis Sovereign Threat Intel UI (`awp://aegis`) | ✅ Complete |
-| C12 | Production build — v1.0.0 `.deb` + `.AppImage`, binary fixes | ✅ Complete |
-| C13 | AXON Integration — AWP verifier FFI bridge (`axon_awp_ffi` crate) | ✅ Complete |
+| C12 | Production build — v1.0.0 `.deb` + `.AppImage` | ✅ Complete |
+| C13 | AXON Integration — AWP verifier FFI bridge (`axon_awp_ffi`) | ✅ Complete |
 | C14 | AIEONYX CA pre-installation (Ed25519, embedded) | ✅ Complete |
 | C15 | NLNet exhibit — arXiv paper, evidence package | ✅ Complete |
-| C16 | AWP mesh routing (axon_awp P66 protocol core ready) | 🔵 Planned v1.1 |
-| C17 | Sovereign renderer engine swap (TRACK-C-SERVO) | 🔵 Planned v1.1 |
+| C16 | HANIEL sovereign rendering engine — all stages (HE-1–HE-15) | ✅ Complete v1.1.0 |
+| C17 | AWP mesh routing | 🔵 Planned |
 
 ---
 
@@ -176,9 +184,7 @@ Tabs and navigation state are saved to EdisonDB and restored on next launch. No 
 
 ```bash
 sudo apt install -y \
-  libwebkit2gtk-4.1-dev libssl-dev libgtk-3-dev \
-  libayatana-appindicator3-dev librsvg2-dev \
-  libsoup-3.0-dev libjavascriptcoregtk-4.1-dev \
+  libssl-dev libayatana-appindicator3-dev librsvg2-dev \
   libdbus-1-dev libsecret-1-dev pkg-config \
   build-essential curl
 ```
@@ -219,9 +225,9 @@ cargo tauri dev
 
 | Platform | Status |
 |----------|--------|
-| Linux x86_64 (Ubuntu 22.04+, Pop!_OS, Debian) | ✅ v1.0.0 current |
-| macOS | 🔵 Planned v1.1 |
-| Windows | 🔵 Planned v1.1 |
+| Linux x86_64 (Ubuntu 22.04+, Pop!_OS, Debian) | ✅ v1.1.0 current |
+| macOS | 🔵 Planned |
+| Windows | 🔵 Planned |
 
 ---
 
@@ -231,7 +237,7 @@ cargo tauri dev
 |-----------|------|--------|
 | **[AXON](https://github.com/aieonyx/AXON)** | Sovereign compiler, AWP protocol, LSP, package registry | ✅ 1,606+ tests |
 | **[EdisonDB](https://github.com/aieonyx/edisondb)** | Sovereign database — WAL, MVCC, RBAC, compliance | ✅ Phase 3 complete |
-| **[Onyxia](https://github.com/aieonyx/onyxia)** | Sovereign browser | ✅ v1.0.0 |
+| **[Onyxia](https://github.com/aieonyx/onyxia)** | Sovereign browser | ✅ v1.1.0 |
 | **[BASTION](https://github.com/aieonyx/bastion)** | Sovereign node OS bootstrap — Ed25519 verifier, seL4 | ✅ v0.2.0 |
 | **aixOs** | Sovereign desktop OS | 🔵 Planned |
 
@@ -249,14 +255,14 @@ Evidence package: [EXHIBIT.md](./EXHIBIT.md) · [STACK_SUMMARY.md](./STACK_SUMMA
 
 ## License
 
-Copyright (c) 2026 Edison Lepiten / AIEONYX
+Copyright (c) 2026 Edison Lepiten / AIEONYX  
 Licensed under the [Apache License, Version 2.0](LICENSE).
 
 ---
 
 ## Contributing
 
-Onyxia is in active development toward NLNet NGI Zero funding.
+Onyxia is in active development toward NLNet NGI Zero funding.  
 Issues and discussion are welcome. Pull requests are reviewed manually — please open an issue first.
 
 ---
