@@ -1,6 +1,6 @@
 [package]
 name = "onyxia"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 
 [lib]
@@ -12,25 +12,18 @@ name = "onyxia"
 path = "src/main.rs"
 
 [dependencies]
-# C13: AXON AWP verifier FFI bridge
-# AXON-STUB-001: stub verifier active; enable axon-live feature for P45 mesh verifier
-axon_awp_ffi = { path = "../../axon/axon_awp_ffi" }
-# HE-15b: HANIEL sovereign rendering pipeline — replaces WebKitGTK content rendering
-haniel = { path = "../../haniel/crates/haniel" }
-haniel_canvas = { path = "../../haniel/crates/haniel_canvas" }
-dirs-next = "2.0"
-reqwest = { version = "0.12", features = ["json", "blocking"] }
-tauri = { version = "2.0", features = ["protocol-asset", "unstable", "test"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-tokio = { version = "1", features = ["full"] }
-log = "0.4"
-env_logger = "0.11"
-url = "2.5"
-
-[target.'cfg(target_os = "linux")'.dependencies]
-webkit2gtk = { version = "2.0", features = ["v2_40"] }
-gtk = { version = "0.18" }
+axon_awp_ffi   = { path = "../../axon/axon_awp_ffi" }
+haniel         = { path = "../../haniel/crates/haniel" }
+haniel_canvas  = { path = "../../haniel/crates/haniel_canvas" }
+dirs-next      = "2.0"
+reqwest        = { version = "0.12", features = ["json", "blocking"] }
+tauri          = { version = "2.0", features = ["protocol-asset", "unstable"] }
+serde          = { version = "1.0", features = ["derive"] }
+serde_json     = "1.0"
+tokio          = { version = "1", features = ["full"] }
+log            = "0.4"
+env_logger     = "0.11"
+url            = "2.5"
 
 [build-dependencies]
 tauri-build = { version = "2.0", features = [] }
@@ -39,7 +32,7 @@ tauri-build = { version = "2.0", features = [] }
 default = []
 
 [profile.release]
-opt-level = 3
-lto = true
+opt-level     = 3
+lto           = true
 codegen-units = 1
-strip = true
+strip         = true

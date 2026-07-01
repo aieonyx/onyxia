@@ -2533,12 +2533,11 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
 name = "onyxia"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "axon_awp_ffi",
  "dirs-next",
  "env_logger",
- "gtk",
  "haniel",
  "haniel_canvas",
  "log",
@@ -2549,7 +2548,6 @@ dependencies = [
  "tauri-build",
  "tokio",
  "url",
- "webkit2gtk",
 ]
 
 [[package]]
